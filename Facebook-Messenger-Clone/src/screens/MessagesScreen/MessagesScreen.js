@@ -6,8 +6,7 @@ import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR }
 
 class MessagesScreen extends Component {
     state = { 
-        username: '',
-        rooms: []
+        username: ''
      }
 
     _retrieveData = async () => {
@@ -63,7 +62,6 @@ class MessagesScreen extends Component {
             <View style={styles.viewItem}>
                 <TouchableOpacity onPress={() => this.onGoToChatScreen(roomid)} style={styles.touchItem}>
                     <Text style={styles.personname}>{'RoomName: ' + item.item.name}</Text>
-                    <Text style={styles.personname}>{'RoomID: ' + item.item.id}</Text>
                 </TouchableOpacity>
             </View>
         )
@@ -75,6 +73,7 @@ class MessagesScreen extends Component {
                 <FlatList
                     data={this.state.rooms}
                     renderItem={(item) => this.listItem(item)}
+                    keyExtractor={(item, index) => index.toString()}
                 />
             </View>
         );
@@ -86,7 +85,7 @@ const styles = StyleSheet.create({
         width: '100%', 
         height: 60, 
         marginBottom: 2,
-        backgroundColor: 'gray',
+        backgroundColor: '#ffe59e',
         
     },
     touchItem: {

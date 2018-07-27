@@ -42,11 +42,11 @@ class SplashScreen extends Component {
         }
     }
     _storeData = async () => {
-    try {
-        await AsyncStorage.setItem('username', this.state.username);
-    } catch (error) {
-        // Error saving data
-    }
+        try {
+            await AsyncStorage.setItem('username', this.state.username);
+        } catch (error) {
+            // Error saving data
+        }
     }
 
     onCreateUser = () => {
@@ -77,10 +77,6 @@ class SplashScreen extends Component {
                 <Button raised color="#0084ff" onPress={this.onCreateUser}>
                     <Text>CREATE USER</Text>
                 </Button>
-
-                {/* <Button raised color="red" onPress={() => {this.props.dispatch({type: "TEST"})}}>
-                    GO TO CHAT SCREEN
-                </Button> */}
             </View>
         );
     }

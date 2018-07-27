@@ -11,6 +11,7 @@ class ActiveScreen extends Component {
     state = {
         people: [],
         username: '',
+        roomid: 0
     }
 
     _retrieveData = async () => {
@@ -33,50 +34,88 @@ class ActiveScreen extends Component {
         this.getFakeData();
     }
 
-    createRoom(item){
+    onCreateRoom(item){
         // This will create a `tokenProvider` object. This object will be later used to make a Chatkit Manager instance.
-      const tokenProvider = new Chatkit.TokenProvider({
-        url: CHATKIT_TOKEN_PROVIDER_ENDPOINT
-      });
+        const tokenProvider = new Chatkit.TokenProvider({
+            url: CHATKIT_TOKEN_PROVIDER_ENDPOINT
+        });
 
-      // This will instantiate a `chatManager` object. This object can be used to subscribe to any number of rooms and users and corresponding messages.
-      // For the purpose of this example we will use single room-user pair.
-      const chatManager = new Chatkit.ChatManager({
-        instanceLocator: CHATKIT_INSTANCE_LOCATOR,
-        userId: this.state.username,
-        tokenProvider: tokenProvider
-      });
+        // This will instantiate a `chatManager` object. This object can be used to subscribe to any number of rooms and users and corresponding messages.
+        // For the purpose of this example we will use single room-user pair.
+        const chatManager = new Chatkit.ChatManager({
+            instanceLocator: CHATKIT_INSTANCE_LOCATOR,
+            userId: this.state.username,
+            tokenProvider: tokenProvider
+        });
 
-      // In order to subscribe to the messages this user is receiving in this room, we need to `connect()` the `chatManager` and have a hook on `onNewMessage`. There are several other hooks that you can use for various scenarios. A comprehensive list can be found [here](https://docs.pusher.com/chatkit/reference/javascript#connection-hooks).
-      chatManager.connect().then(currentUser => {
-        currentUser.createRoom({
-            name: this.state.username + '-' + item.item.login.username,
-            private: true,
-            addUserIds: [this.state.username, item.item.login.username]
-          }).then(room => {
-            console.log(`Created room called ${room.name}`)
-            this.onGoToChatScreen(item, room);
-          })
-          .catch(err => {
-            console.log(`Error creating room ${err}`)
-          })
-      });
+        // In order to subscribe to the messages this user is receiving in this room, we need to `connect()` the `chatManager` and have a hook on `onNewMessage`. There are several other hooks that you can use for various scenarios. A comprehensive list can be found [here](https://docs.pusher.com/chatkit/reference/javascript#connection-hooks).
+        chatManager.connect().then(currentUser => {
+            currentUser.createRoom({
+                name: this.state.username + '-' + item.item.login.username,
+                private: true,
+                addUserIds: [this.state.username, item.item.login.username]
+            }).then(room => {
+                this.onGoToChatScreen(item, room);
+            })
+            .catch(err => {
+                console.log(`Error creating room ${err}`)
+            })
+        });
     }
 
-    onGoToChatScreen(item, room){
-        const username = this.state.username;
-        this.props.dispatch({type: "GOTO_CHAT", data: {"username": this.state.username, "roomid": room.id}});
+    _retrieveRooms(item){
+        // This will create a `tokenProvider` object. This object will be later used to make a Chatkit Manager instance.
+        const tokenProvider = new Chatkit.TokenProvider({
+            url: CHATKIT_TOKEN_PROVIDER_ENDPOINT
+        });
+
+        // This will instantiate a `chatManager` object. This object can be used to subscribe to any number of rooms and users and corresponding messages.
+        // For the purpose of this example we will use single room-user pair.
+        const chatManager = new Chatkit.ChatManager({
+            instanceLocator: CHATKIT_INSTANCE_LOCATOR,
+            userId: this.state.username,
+            tokenProvider: tokenProvider
+        });
+
+        const roomname = item.item.login.username + '-' + this.state.username;
+        chatManager.connect()
+        .then(currentUser => {
+            var rooms = currentUser.rooms.filter(e => e.name == roomname);
+            if(rooms.length != 0){ //exist roomname
+                this.onGoToChatScreen(rooms[0]);
+            }else{
+                // check inver_roomname
+                const invert_roomname = this.state.username + '-' + item.item.login.username;
+                rooms = currentUser.rooms.filter(e => e.name == invert_roomname);
+                if(rooms.length != 0){
+                    this.onGoToChatScreen(rooms[0]);
+                }else{
+                    this.onCreateRoom(rooms[0]);
+                }
+            }
+        })
+        .catch(err => {
+            console.log('Error on connection', err)
+        })
+    }
+
+    onCheckExistRoom(item){
+        this._retrieveRooms(item);
+    }
+
+    onGoToChatScreen(room){
+        this.props.dispatch({type: "GOTO_CHAT", data: {"username": this.state.username, "roomid": room.id}})
     }
 
     listItem(item){
         return (
             <View style={styles.viewItem}>
-                <TouchableOpacity onPress={()=>this.createRoom(item)} style={styles.touchItem}>
+                <TouchableOpacity onPress={() => this.onCheckExistRoom(item)} style={styles.touchItem}>
                     <Image source={{uri: item.item.picture.thumbnail}} style={styles.avatar}/>
                     <Text style={styles.personname}>{item.item.name.first}</Text>
                     <Image source={require('@assets/images/wave.png')} style={styles.wave}/>
                 </TouchableOpacity>
-                
+
             </View>
         )
     }
@@ -88,6 +127,7 @@ class ActiveScreen extends Component {
                 <FlatList
                     data={this.state.people}
                     renderItem={(item) => this.listItem(item)}
+                    keyExtractor={(item, index) => index.toString()}
                 />
                 :
                 null
@@ -102,7 +142,6 @@ const styles = StyleSheet.create({
         width: '100%', 
         height: 60, 
         marginBottom: 2,
-        // backgroundColor: 'gray',
         
     },
     touchItem: {

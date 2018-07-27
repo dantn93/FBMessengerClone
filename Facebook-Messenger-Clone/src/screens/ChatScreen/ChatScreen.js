@@ -1,10 +1,12 @@
 import React from "react";
+import {View, Image, StyleSheet, TouchableOpacity} from "react-native";
+import {connect} from 'react-redux';
 import { GiftedChat } from "react-native-gifted-chat";
 import Chatkit from "@pusher/chatkit";
 
 import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR } from '@config/chatConfig';
 
-export default class ChatScreen extends React.Component {
+class ChatScreen extends React.Component {
   state = {
     messages: [],
     username: '',
@@ -74,13 +76,43 @@ export default class ChatScreen extends React.Component {
     });
   }
 
+  onGoBack(){
+    this.props.dispatch({type: 'GO_BACK'});
+  }
+
   render() {
-    return <GiftedChat 
-      messages={this.state.messages} 
-      onSend={messages => this.onSend(messages)}
-      user={{
-      _id: this.state.username
-      }}
-    />;
-  };
+    return <View style={styles.container}>
+      <GiftedChat
+        messages={this.state.messages} 
+        onSend={messages => this.onSend(messages)}
+        user={{
+        _id: this.state.username
+        }}
+      />
+      <TouchableOpacity style={styles.touchBack} onPress={() => this.onGoBack()}>
+        <Image source={require('@assets/images/icons8-back-filled-100.png')} style={styles.backImage}/>
+      </TouchableOpacity>
+    </View>
+    
+  }
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1
+  },
+  touchBack: {
+    width: 30,
+    height: 30,
+    position: 'absolute',
+    zIndex: 1
+  },
+  backImage: {
+    width: 30,
+    height: 30,
+    top: 30,
+    left: 10
+  }
+})
+
+export default connect()(ChatScreen);

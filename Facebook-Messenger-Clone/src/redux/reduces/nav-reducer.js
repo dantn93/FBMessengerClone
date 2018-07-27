@@ -19,7 +19,7 @@ const navigationReducer = (state = initialNavState, action) => {
             }}),
             state );
             break;
-        case 'BACK_SCREEN':
+        case 'GO_BACK':
             nextState = MessengerApp.router.getStateForAction(
             NavigationActions.back(),
             state );
