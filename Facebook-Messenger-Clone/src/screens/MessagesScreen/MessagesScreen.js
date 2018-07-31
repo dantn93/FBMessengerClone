@@ -3,6 +3,8 @@ import { View, Text, AsyncStorage, FlatList, StyleSheet, TouchableOpacity } from
 import { connect } from 'react-redux';
 import Chatkit from "@pusher/chatkit";
 import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR } from '@config/chatConfig';
+import axios from 'axios';
+
 
 class MessagesScreen extends Component {
   state = {
@@ -40,14 +42,7 @@ class MessagesScreen extends Component {
     chatManager.connect()
       .then(currentUser => {
         const rooms = currentUser.rooms.filter(room => room.userIds.length == 2);
-        if (rooms.length != 0) {
-          // rooms.map(room => {
-          //   room.userIds.map(userId => {
-          //     if(userId != this.state.username){
-
-          //     }
-          //   })
-          // })
+        if (rooms.length != 0){
           this.setState({ rooms });
         }
       })
