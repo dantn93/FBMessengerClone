@@ -1,6 +1,6 @@
 import React from "react";
-import {View, Image, StyleSheet, TouchableOpacity} from "react-native";
-import {connect} from 'react-redux';
+import { View, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { connect } from 'react-redux';
 import { GiftedChat } from "react-native-gifted-chat";
 import Chatkit from "@pusher/chatkit";
 
@@ -13,11 +13,11 @@ class ChatScreen extends React.Component {
     roomid: ''
   };
 
-  componentDidMount(){
+  componentDidMount() {
     const username = this.props.navigation.getParam("username");
     const roomid = this.props.navigation.getParam("roomid");
     console.log(roomid);
-    this.setState({username, roomid});
+    this.setState({ username, roomid });
 
     // This will create a `tokenProvider` object. This object will be later used to make a Chatkit Manager instance.
     const tokenProvider = new Chatkit.TokenProvider({
@@ -38,18 +38,18 @@ class ChatScreen extends React.Component {
         console.log(`Added to room ${room.id}`);
       }
     })
-    .then(currentUser => {
-      this.currentUser = currentUser;
-      this.currentUser.subscribeToRoom({
-        roomId: roomid,
-        hooks: {
-          onNewMessage: this.onReceive.bind(this)
-        }
-      });
-    })
-    .catch(err => {
-      console.log('Error on connection', err)
-    })
+      .then(currentUser => {
+        this.currentUser = currentUser;
+        this.currentUser.subscribeToRoom({
+          roomId: roomid,
+          hooks: {
+            onNewMessage: this.onReceive.bind(this)
+          }
+        });
+      })
+      .catch(err => {
+        console.log('Error on connection', err)
+      })
   };
   onReceive(data) {
     const { id, senderId, text, createdAt } = data;
@@ -76,24 +76,24 @@ class ChatScreen extends React.Component {
     });
   }
 
-  onGoBack(){
-    this.props.dispatch({type: 'GO_BACK'});
+  onGoBack() {
+    this.props.dispatch({ type: 'GO_BACK' });
   }
 
   render() {
     return <View style={styles.container}>
       <GiftedChat
-        messages={this.state.messages} 
+        messages={this.state.messages}
         onSend={messages => this.onSend(messages)}
         user={{
-        _id: this.state.username
+          _id: this.state.username
         }}
       />
       <TouchableOpacity style={styles.touchBack} onPress={() => this.onGoBack()}>
-        <Image source={require('@assets/images/icons8-back-filled-100.png')} style={styles.backImage}/>
+        <Image source={require('@assets/images/icons8-back-filled-100.png')} style={styles.backImage} />
       </TouchableOpacity>
     </View>
-    
+
   }
 };
 

@@ -11,54 +11,56 @@ import styles from './styles';
 class SplashScreen extends Component {
     constructor(props) {
         super(props);
-        this.state = { username: '', uuid: ''};
+        this.state = { username: '', avatar: '', continue: false };
       }
 
     componentDidMount(){
-        console.log(users.results.slice(0, 2));
+        console.log(users.results.slice(0, 10));
     }
-    onPress = () => {
-        if(this.getUUID()){
-            const { navigation } = this.props;
-            navigation.navigate('MainScreen');
-        }
-        
-    }
-    goToChat = () => {
+    goToMainScreen(){
         const { navigation } = this.props;
-        navigation.navigate('ChatScreen');
+        navigation.navigate('MainScreen');
     }
-
-    getUUID(){
+    onCreateUser = async () => {
         try{
-            const uuid = users.results.slice(0, 2).filter(user => user.login.username == this.state.username)[0].login.uuid;
-            if(uuid != null){
-                this._storeData();
-                return true;
+            const user = users.results.slice(0, 10).filter(user => user.login.username == this.state.username)[0];
+            if(user != null){
+                //create this user in pusher server
+                console.log('Have user');
+                const flag = await this.postCreateUser(user);
+                if(await this.storeData(user)){
+                    this.setState({continue: true});
+                }
             }
             return false;
         }catch(e){
-
+            return false;
+            console.log(e);
         }
     }
-    _storeData = async () => {
+    storeData = async (user) => {
         try {
             await AsyncStorage.setItem('username', this.state.username);
+            await AsyncStorage.setItem('avatar', user.picture.thumbnail);
+            return true;
         } catch (error) {
-            // Error saving data
+            console.log('Cannot save user into AsyncStorage');
+            return false;
         }
     }
 
-    onCreateUser = () => {
+    postCreateUser = (user) => {
         axios.post('http://localhost:4000/create/user', {
-            "name": this.state.username,"id": this.state.username
-          })
-          .then(function (response) {
-            console.log(response);
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
+            "name": this.state.username,"id": this.state.username, "avatar": user.picture.thumbnail
+            })
+            .then(function (response) {
+                if(response.status == 200){
+                    console.log('Create user successfully');
+                }
+            })
+            .catch(function (error) {
+                console.log('Cant create user');
+            });
     }
 
     render() {
@@ -71,12 +73,12 @@ class SplashScreen extends Component {
                     placeholder={'username'}
                     autoCapitalize = 'none'
                 />
-                <Button raised color="#0084ff" onPress={this.onPress}>
+                {this.state.continue == true ? <Button raised color="#0084ff" onPress={() => this.goToMainScreen()}>
                     <Text>CONTINUE AS USER</Text>
-                </Button>
-                <Button raised color="#0084ff" onPress={this.onCreateUser}>
+                </Button> : <View></View>}
+                {this.state.continue == false ? <Button raised color="#0084ff" onPress={this.onCreateUser}>
                     <Text>CREATE USER</Text>
-                </Button>
+                </Button> : <View></View>}
             </View>
         );
     }
