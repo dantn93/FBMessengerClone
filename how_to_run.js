@@ -1,11 +1,16 @@
 /* == START THE SERVER ==
 1. Go to folder "Server"
-execute the command: "yarn start"
+execute the command:
+- yarn install
+- yarn start
 */
 
 /* == START CLIENTS ==
 1. Go to folder "Facebook-Messenger-Clone"
-2. Execute the command: "./run.sh install" to install and link libraries
+2. Execute the command: 
+- ./run.sh install
+- ./run.sh ios
+- ./run.sh android
 */
 
 /*
