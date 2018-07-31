@@ -14,15 +14,15 @@ execute the command:
 */
 
 /*
-Please use follow users for running app:
+Please use following users for running app:
 heavycat176         -> name: emilia 
-heavysnake748       -> name: denny
+heavysnake748       -> name: dennyß
 organiccat819       -> name: birol
 yellowostrich532    -> name: sieglinde
 happyzebra486       -> name: marie-claude
 bluepanda145        -> name: encarnacion
 bluefish979         -> name:
-beautifulduck197    -> name: arend-jan
+beautifulduck197    -> name: arend-ja
 biggoose900         -> name: hugo
 browntiger427       -> name: rocio
 */
