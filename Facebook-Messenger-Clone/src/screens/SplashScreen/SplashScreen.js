@@ -11,7 +11,7 @@ import styles from './styles';
 class SplashScreen extends Component {
     constructor(props) {
         super(props);
-        this.state = { username: '', avatar: '', continue: false };
+        this.state = { username: 'heavycat176', avatar: '', continue: false };
       }
 
     componentDidMount(){
@@ -69,7 +69,7 @@ class SplashScreen extends Component {
                 <TextInput
                     style={{width: 200, height: 40, borderColor: 'gray', borderWidth: 1}}
                     onChangeText={(username) => this.setState({username})}
-                    value={this.state.text}
+                    value={this.state.username}
                     placeholder={'username'}
                     autoCapitalize = 'none'
                 />
