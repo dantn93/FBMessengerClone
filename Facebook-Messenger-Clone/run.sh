@@ -1,6 +1,6 @@
 case "$1" in
       'ios')
-            react-native run-ios --simulator="iPhone 8"
+            react-native run-ios --simulator="iPhone X"
             ;;
       'android')
             react-native run-android

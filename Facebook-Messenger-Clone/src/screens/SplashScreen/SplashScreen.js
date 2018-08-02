@@ -11,7 +11,7 @@ import styles from './styles';
 class SplashScreen extends Component {
     constructor(props) {
         super(props);
-        this.state = { username: 'heavycat176', avatar: '', continue: false };
+        this.state = { username: '', avatar: '', continue: false };
       }
 
     componentDidMount(){

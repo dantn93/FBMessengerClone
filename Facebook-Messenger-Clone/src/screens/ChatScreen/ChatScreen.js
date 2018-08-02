@@ -7,21 +7,22 @@ import axios from 'axios';
 // import { TextInput } from 'react-native-paper';
 
 import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR } from '@config/chatConfig';
-const langArr = [
-  {id: 0, label: 'English', value: 'en'},
-  {id: 0, label: 'Vietnamese', value: 'vn'}
-]
+import { LANGUAGES } from '@config/languageArr';
+console.log(LANGUAGES);
 
 class ChatScreen extends React.Component {
   state = {
     messages: [],
     username: '',
     roomid: '',
-    language: 'en',
-    selectPicker: false,
-    rawMessage: ''
-    }
-  
+    selectFromPicker: false,
+    selectToPicker: false,
+    fromLanguage: 'vi',
+    toLanguage: 'en',
+    rawMessage: '',
+    translateMessage: ''
+  }
+
 
   componentDidMount() {
     const username = this.props.navigation.getParam("username");
@@ -84,67 +85,113 @@ class ChatScreen extends React.Component {
       text: message.text,
       roomId: this.state.roomid
     });
+    this.setState({
+      rawMessage: '',
+      translateMessage: ''
+    });
   }
 
   onGoBack() {
     this.props.dispatch({ type: 'GO_BACK' });
   }
 
-  onTranslate(){
-    // axios.post('')
+  onTranslate = () => {
+    console.log(this.state.fromLanguage);
+    console.log(this.state.toLanguage);
+    console.log(this.state.rawMessage);
+    axios.post('http://localhost:4000/translate', {
+      "rawMessage": this.state.rawMessage,
+      "fromLanguage": this.state.fromLanguage,
+      "toLanguage": this.state.toLanguage
+    })
+      .then(res => {
+        if (res.status == 200) {
+
+          this.setState({ translateMessage: res.data });
+        } else {
+          this.setState({ translateMessage: '' });
+        }
+      })
+      .catch(err => console.log('Cant send translated request to server'));
+  }
+
+  renderPicker() {
+    if (this.state.selectFromPicker || this.state.selectToPicker) {
+      return <Picker
+        selectedValue={this.state.language}
+        style={{ width: '100%', backgroundColor: '#fafafa', position: 'absolute', bottom: 0 }}
+        onValueChange={(itemValue, itemIndex) => {
+          this.state.selectFromPicker ? this.setState({
+            fromLanguage: itemValue,
+            selectFromPicker: false,
+            selectToPicker: false
+          }) : this.setState({
+            toLanguage: itemValue,
+            selectFromPicker: false,
+            selectToPicker: false
+          });
+        }}>
+        {LANGUAGES.map(e => <Picker.Item key={e.id} label={e.label} value={e.value} />)}
+      </Picker>
+    } else {
+      return null;
+    }
+
   }
 
   renderChatFooter(props) {
-      return (
+    return (
       <View>
-        <View style={{flexDirection: 'row', width: '100%', height: 40, alignItems: 'center', borderTopWidth: 1, borderColor: '#707070'}}>
-          <Text style={{marginLeft: 8, fontSize: 16}}>Translate to: </Text>
-          <TouchableOpacity style={{marginLeft: 5, backgroundColor: 'white', width: 100, height: 25, borderRadius: 5, alignItems: 'center', justifyContent: 'center'}}
-            onPress={() => this.setState({selectPicker: true})}
+        <View style={styles.footerselectlang}>
+          <Text style={styles.translatelabel}>Translate from: </Text>
+          <TouchableOpacity style={styles.touchfrom}
+            onPress={() => this.setState({ selectFromPicker: true, selectToPicker: false })}
           >
-            <Text style={{fontSize: 16}}>{langArr.filter(e => e.value == this.state.language).map(e => e.label)}</Text>
+            <Text style={{ fontSize: 14 }}>{LANGUAGES.filter(e => e.value == this.state.fromLanguage).map(e => e.label)}</Text>
+          </TouchableOpacity>
+          <Text style={styles.to}>to: </Text>
+          <TouchableOpacity style={styles.touchfrom}
+            onPress={() => this.setState({ selectFromPicker: false, selectToPicker: true })}
+          >
+            <Text style={{ fontSize: 14 }}>{LANGUAGES.filter(e => e.value == this.state.toLanguage).map(e => e.label)}</Text>
           </TouchableOpacity>
         </View>
-        <View style={{flexDirection: 'row', height: 70, alignItems: 'center', marginLeft: 5, marginRight: 5}}>
-          <View style={{flex: 8.5}}>
+        <View style={styles.rawmessbox}>
+          <View style={{ flex: 8.5 }}>
             <TextInput
               multiline={true}
-              style={{height: 50, width: '100%', backgroundColor: 'white', borderRadius: 5, justifyContent: 'center', paddingLeft: 5, justifyContent: 'center', fontSize: 16}}
+              style={styles.rawmessage}
               placeholder={'Type a message to translate...'}
-              onChangeText={(text) => this.setState({rawMessage: text})}
+              onChangeText={(text) => this.setState({ rawMessage: text })}
               value={this.state.rawMessage}
             />
           </View>
-          <View style={{flex: 1.5, marginLeft: 5, marginRight: 5, height: 50, justifyContent: 'center', alignItems: 'center'}}>
-            <TouchableOpacity 
-              style={{width: '80%', height: '80%'}}
-              onPress={_ => _}
+          <View style={styles.boxbuttontranslate}>
+            <TouchableOpacity
+              style={{ width: '80%', height: '80%' }}
+              onPress={this.onTranslate}
             >
-              <Image source={require('@assets/images/icons8-google-translate-96.png')} style={{width: '100%', height: '100%'}}/>
+              <Image source={require('@assets/images/icons8-google-translate-96.png')} style={{ width: '100%', height: '100%' }} />
             </TouchableOpacity>
           </View>
         </View>
+        {this.renderPicker()}
       </View>
-      )
+    )
   }
 
   render() {
     return <View style={styles.container}>
       <GiftedChat
+        text={this.state.translateMessage}
         messages={this.state.messages}
         onSend={messages => this.onSend(messages)}
         user={{
           _id: this.state.username
         }}
-        // renderFooter={this.renderFooter.bind(this)}
+        onInputTextChanged={text => this.setState({ translateMessage: text })}
         renderChatFooter={this.renderChatFooter.bind(this)}
       />
-      {this.state.selectPicker == true? <Picker
-        selectedValue={this.state.language}
-        style={{width: '100%', backgroundColor: '#fafafa', position: 'absolute', bottom: 0}}
-        onValueChange={(itemValue, itemIndex) => this.setState({language: itemValue, selectPicker: false})}>
-        {langArr.map(e => <Picker.Item key={e.id} label={e.label} value={e.value}/>)}
-      </Picker> : null}
 
       <TouchableOpacity style={styles.touchBack} onPress={() => this.onGoBack()}>
         <Image source={require('@assets/images/icons8-back-filled-100.png')} style={styles.backImage} />
@@ -168,6 +215,58 @@ const styles = StyleSheet.create({
     height: 30,
     top: 30,
     left: 10
+  },
+  footerselectlang: {
+    flexDirection: 'row',
+    width: '100%',
+    height: 40,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderColor: '#707070'
+  },
+  translatelabel: {
+    flex: 2.5,
+    marginLeft: 3,
+    fontSize: 14
+  },
+  touchfrom: {
+    flex: 2.2,
+    marginLeft: 5,
+    backgroundColor: 'white',
+    height: 25,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  to: {
+    flex: 0.5,
+    marginLeft: 8,
+    fontSize: 14
+  },
+  rawmessage: {
+    height: 40,
+    width: '100%',
+    backgroundColor: 'white',
+    borderRadius: 5,
+    justifyContent: 'center',
+    paddingLeft: 5,
+    justifyContent: 'center',
+    fontSize: 16
+  },
+  rawmessbox: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginLeft: 5, 
+    marginRight: 5, 
+    marginBottom: 3 
+  },
+  boxbuttontranslate: { 
+    flex: 1.5,
+    marginLeft: 5,
+    marginRight: 5,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 })
 
