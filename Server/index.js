@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const Chatkit = require('@pusher/chatkit-server');
 const [CHATKIT_INSTANCE_LOCATOR, SECRET_KEY] = require('./config');
+const translate = require('google-translate-api');
 
 const chatkit = new Chatkit.default({
   instanceLocator: CHATKIT_INSTANCE_LOCATOR,
@@ -88,6 +89,29 @@ app.post('/get/user', function (req, res) {
       console.log('Cant get user from Chatkit');
       res.status(404).send('Cant get user from Chatkit');
     });
+});
+
+app.post('/translate', function (req, res){
+  const rawMessage = req.body.rawMessage;
+  const toLanguage = req.body.toLanguage;
+  const fromLanguage = req.body.fromLanguage;
+  console.log('//== TRANSLATION ==//')
+  console.log('RawMessage: ',rawMessage);
+  console.log('From: ', fromLanguage);
+  console.log('To: ', toLanguage);
+  
+  if(rawMessage != '' && fromLanguage != '' && toLanguage != ''){
+    translate(rawMessage, {from: fromLanguage, to: toLanguage})
+    .then(restext => {
+      console.log('TranslatedMessage: ', restext.text);
+      console.log('//== END ==//')
+      res.status(200).send(restext.text);
+    }).catch(err => {
+        res.status(404).send('Cant translate');
+    });
+  }else{
+    res.status(404).send('rawMessage or language is a empty string');
+  }
 });
 
 app.listen(4000, function () { // (6)
