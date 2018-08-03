@@ -25,6 +25,7 @@ function createUser(chatkit, id, name, avatarURL, res) {
       res.status(404).send('Unable to create user');
     });
 }
+
 app.post('/create/user', function (req, res) { // (5)
   const name = req.body.name;
   const id = req.body.id;
