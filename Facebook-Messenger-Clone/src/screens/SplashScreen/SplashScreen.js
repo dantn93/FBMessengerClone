@@ -14,59 +14,59 @@ class SplashScreen extends Component {
         this.state = { username: '', avatar: '', continue: false };
       }
 
-    componentDidMount(){
-        console.log(users.results.slice(0, 10));
-    }
-    goToMainScreen(){
-        const { navigation } = this.props;
-        navigation.navigate('MainScreen');
-    }
-    onCreateUser = async () => {
-        try{
-            const user = users.results.slice(0, 10).filter(user => user.login.username == this.state.username)[0];
-            if(user != null){
-                //create this user in pusher server
-                console.log('Have user');
-                const flag = await this.postCreateUser(user);
-                if(await this.storeData(user)){
-                    this.setState({continue: true});
-                }
-            }
-            return false;
-        }catch(e){
-            return false;
-            console.log(e);
-        }
-    }
-    storeData = async (user) => {
-        try {
-            await AsyncStorage.setItem('username', this.state.username);
-            await AsyncStorage.setItem('avatar', user.picture.thumbnail);
-            return true;
-        } catch (error) {
-            console.log('Cannot save user into AsyncStorage');
-            return false;
-        }
-    }
+    // componentDidMount(){
+    //     console.log(users.results.slice(0, 10));
+    // }
+    // goToMainScreen(){
+    //     const { navigation } = this.props;
+    //     navigation.navigate('MainScreen');
+    // }
+    // onCreateUser = async () => {
+    //     try{
+    //         const user = users.results.slice(0, 10).filter(user => user.login.username == this.state.username)[0];
+    //         if(user != null){
+    //             //create this user in pusher server
+    //             console.log('Have user');
+    //             const flag = await this.postCreateUser(user);
+    //             if(await this.storeData(user)){
+    //                 this.setState({continue: true});
+    //             }
+    //         }
+    //         return false;
+    //     }catch(e){
+    //         return false;
+    //         console.log(e);
+    //     }
+    // }
+    // storeData = async (user) => {
+    //     try {
+    //         await AsyncStorage.setItem('username', this.state.username);
+    //         await AsyncStorage.setItem('avatar', user.picture.thumbnail);
+    //         return true;
+    //     } catch (error) {
+    //         console.log('Cannot save user into AsyncStorage');
+    //         return false;
+    //     }
+    // }
 
-    postCreateUser = (user) => {
-        axios.post('http://localhost:4000/create/user', {
-            "name": this.state.username,"id": this.state.username, "avatar": user.picture.thumbnail
-            })
-            .then(function (response) {
-                if(response.status == 200){
-                    console.log('Create user successfully');
-                }
-            })
-            .catch(function (error) {
-                console.log('Cant create user');
-            });
-    }
+    // postCreateUser = (user) => {
+    //     axios.post('http://localhost:4000/create/user', {
+    //         "name": this.state.username,"id": this.state.username, "avatar": user.picture.thumbnail
+    //         })
+    //         .then(function (response) {
+    //             if(response.status == 200){
+    //                 console.log('Create user successfully');
+    //             }
+    //         })
+    //         .catch(function (error) {
+    //             console.log('Cant create user');
+    //         });
+    // }
 
     render() {
         return (
             <View style={styles.container}>
-                <TextInput
+                {/* <TextInput
                     style={{width: 200, height: 40, borderColor: 'gray', borderWidth: 1}}
                     onChangeText={(username) => this.setState({username})}
                     value={this.state.username}
@@ -78,7 +78,8 @@ class SplashScreen extends Component {
                 </Button> : <View></View>}
                 {this.state.continue == false ? <Button raised color="#0084ff" onPress={this.onCreateUser}>
                     <Text>CREATE USER</Text>
-                </Button> : <View></View>}
+                </Button> : <View></View>} */}
+                <Text>Hello</Text>
             </View>
         );
     }
