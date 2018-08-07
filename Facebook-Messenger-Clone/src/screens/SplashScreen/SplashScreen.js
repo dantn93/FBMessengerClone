@@ -6,7 +6,8 @@ import { users } from '@assets/fake_data';
 import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR } from '@config/chatConfig';
 import axios from 'axios';
 import RNAccountKit, { LoginButton, Color, StatusBarStyle } from 'react-native-facebook-account-kit';
-
+import { url } from '@config/loopBackConfig';
+console.log(url);
 class SplashScreen extends Component {
     state = {
         authToken: null,
@@ -14,15 +15,17 @@ class SplashScreen extends Component {
     }
     componentWillMount() {
         this.configureAccountKit()
-
         RNAccountKit.getCurrentAccessToken()
             .then(token => {
                 if (token) {
                     RNAccountKit.getCurrentAccount().then(account => {
-                        this.setState({
-                            authToken: token,
-                            loggedAccount: account,
-                        })
+                        const flag = this.postCreateUser(account);
+                        if (flag) {
+                            this.setState({
+                                authToken: token,
+                                loggedAccount: account,
+                            })
+                        }
                     })
                 } else {
                     console.log('No user account logged')
@@ -33,36 +36,20 @@ class SplashScreen extends Component {
 
     configureAccountKit() {
         RNAccountKit.configure({
-            theme: {
-                //backgroundColor:       Color.rgba(0,120,0,0.1),
-                //buttonBackgroundColor: Color.rgba(0, 153, 0, 1.00),
-                //buttonDisabledBackgroundColor: Color.rgba(100, 153, 0, 0.5),
-                //buttonBorderColor:     Color.rgba(0,255,0,1),
-                //buttonTextColor:       Color.rgba(0,255,0,1),
-                //headerBackgroundColor: Color.rgba(0, 153, 0, 1.00),
-                //headerTextColor:       Color.rgba(0,255,0,1),
-                //headerButtonTextColor: Color.rgba(0,255,0,1),
-                //iconColor:             Color.rgba(0,255,0,1),
-                //inputBackgroundColor:  Color.rgba(0,255,0,1),
-                //inputBorderColor:      Color.hex('#ccc'),
-                //inputTextColor:        Color.hex('#0f0'),
-                //textColor:             Color.hex('#0f0'),
-                //titleColor:            Color.hex('#0f0'),
-                //backgroundImage:       "background.png",
-                //statusBarStyle:        StatusBarStyle.LightContent,
-            },
-            //countryWhitelist: [ "AR", "BR", "US" ],
-            //countryBlacklist: [ "BR" ],
-            //defaultCountry: "AR"
             initialEmail: 'mocnhantrang@gmail.com',
             initialPhoneCountryPrefix: '+84',
             initialPhoneNumber: '1292849917',
         })
     }
 
+    getPhoneNumber(phoneNumber){
+        return phoneNumber.countryCode + '-' + phoneNumber.number
+    }
+
     storeData = async (user) => {
+        const name = user.phoneNumber ? this.getPhoneNumber(user.phoneNumber) : user.email;
         try {
-            await AsyncStorage.setItem('email', user.email);
+            await AsyncStorage.setItem('name', name);
             await AsyncStorage.setItem('id', user.id);
             return true;
         } catch (error) {
@@ -70,40 +57,40 @@ class SplashScreen extends Component {
         }
     }
 
-    goToMainScreen(){
+    goToMainScreen() {
         const { navigation } = this.props;
         navigation.navigate('MainScreen');
     }
 
     postCreateUser = async (user) => {
-        const flag = false;
-        await axios.post('http://localhost:5000/api/chats/createuser', {
-            "email": user.email, "id": user.id
+        const name = user.phoneNumber ? this.getPhoneNumber(user.phoneNumber) : user.email
+        var flag = false;
+        await axios.post(url + 'chats/createuser', {
+            "name": name, "id": user.id
         })
-            .then(function (response) {
-                if (response.data.success) {
-                    flag = true
-                }
-            })
-            .catch(function (error) {
-                console.log('Cant create user');
-            });
+        .then(function (response) {
+            if (response.data.success) {
+                flag = true
+            }
+        })
+        .catch(function (error) {
+            console.log('Cant create user: ', error.message);
+        });
         //save email and id into AsyncStore
-        if(flag){
+        if (flag) {
             return await this.storeData(user);
         }
     }
 
     onLogin(token) {
         if (!token) {
-            console.warn('User canceled login')
+            console.log('User canceled login')
             this.setState({})
         } else {
             RNAccountKit.getCurrentAccount().then(account => {
                 //1. send request to loopback and create user
-                console.log('//== ACCOUNT ==//')
                 const flag = this.postCreateUser(account);
-                if(flag){
+                if (flag) {
                     this.setState({
                         authToken: token,
                         loggedAccount: account,
@@ -176,9 +163,22 @@ class SplashScreen extends Component {
         )
     }
 
+    renderMain() {
+        return (
+            <View>
+                <TouchableOpacity onPress={() => this.goToMainScreen()}>
+                    <Text style={{ backgroundColor: 'red' }}>Go to Main Screen</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => this.onLogoutPressed()} style={{ marginTop: 30 }}>
+                    <Text style={{ backgroundColor: 'blue' }}>Log out</Text>
+                </TouchableOpacity>
+            </View>
+        )
+    }
+
     render() {
         return (
-            <View style={styles.container}>{this.state.loggedAccount ? this.goToMainScreen() : this.renderLogin()}</View>
+            <View style={styles.container}>{this.state.loggedAccount ? this.renderMain() : this.renderLogin()}</View>
         )
     }
 }

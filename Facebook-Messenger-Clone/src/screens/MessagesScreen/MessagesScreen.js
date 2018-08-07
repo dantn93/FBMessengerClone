@@ -8,17 +8,21 @@ import axios from 'axios';
 
 class MessagesScreen extends Component {
   state = {
-    username: '',
+    name: '',
+    id: '',
     rooms: []
   }
 
   //get username and avatar in AsyncStorage
   retrieveData = async () => {
     try {
-      const username = await AsyncStorage.getItem('username');
-      if (username != null) {
+      const id = await AsyncStorage.getItem('id');
+      const name = await AsyncStorage.getItem('name');
+      console.log('id: ', id);
+      console.log('name:', name);
+      if (id != null && name != null) {
         // We have data!!
-        await this.setState({ username });
+        await this.setState({ name, id });
       }
     } catch (error) {
       console.log(error.message);
@@ -35,7 +39,7 @@ class MessagesScreen extends Component {
     // For the purpose of this example we will use single room-user pair.
     const chatManager = new Chatkit.ChatManager({
       instanceLocator: CHATKIT_INSTANCE_LOCATOR,
-      userId: this.state.username,
+      userId: this.state.id,
       tokenProvider: tokenProvider
     })
 
@@ -57,11 +61,11 @@ class MessagesScreen extends Component {
   }
 
   componentDidMount() {
-    this.onRetrieveRooms();
+    // this.onRetrieveRooms();
   }
 
   onGoToChatScreen(room) {
-    this.props.dispatch({ type: "GOTO_CHAT", data: { "username": this.state.username, "roomid": room } });
+    this.props.dispatch({ type: "GOTO_CHAT", data: { "id": this.state.id, "roomid": room } });
   }
 
   listItem(item) {
@@ -78,11 +82,11 @@ class MessagesScreen extends Component {
   render() {
     return (
       <View style={{ flex: 1 }}>
-        <FlatList
+        {/* <FlatList
           data={this.state.rooms}
           renderItem={(item) => this.listItem(item)}
           keyExtractor={(item, index) => index.toString()}
-        />
+        /> */}
       </View>
     );
   }
