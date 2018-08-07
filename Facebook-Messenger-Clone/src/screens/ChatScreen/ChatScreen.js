@@ -24,9 +24,8 @@ class ChatScreen extends React.Component {
 
 
   componentDidMount() {
-    const username = this.props.navigation.getParam("username");
+    const username = this.props.navigation.getParam("id");
     const roomid = this.props.navigation.getParam("roomid");
-    console.log(roomid);
     this.setState({ username, roomid });
 
     // This will create a `tokenProvider` object. This object will be later used to make a Chatkit Manager instance.

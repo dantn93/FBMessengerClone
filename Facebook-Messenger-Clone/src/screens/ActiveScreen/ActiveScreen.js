@@ -129,9 +129,7 @@ class ActiveScreen extends Component {
   }
 
   goToChatScreen(room) {
-    console.log('id: ', this.state.id);
-    console.log('roomid: ', room.id);
-    // this.props.dispatch({ type: "GOTO_CHAT", data: { "id": this.state.id, "roomid": room.id } })
+    this.props.dispatch({ type: "GOTO_CHAT", data: { "id": this.state.id, "roomid": room.id } })
   }
 
   listItem(item) {
