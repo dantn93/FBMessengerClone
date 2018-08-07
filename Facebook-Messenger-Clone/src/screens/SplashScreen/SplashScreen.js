@@ -60,16 +60,57 @@ class SplashScreen extends Component {
         })
     }
 
+    storeData = async (user) => {
+        try {
+            await AsyncStorage.setItem('email', user.email);
+            await AsyncStorage.setItem('id', user.id);
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    goToMainScreen(){
+        const { navigation } = this.props;
+        navigation.navigate('MainScreen');
+    }
+
+    postCreateUser = async (user) => {
+        const flag = false;
+        await axios.post('http://localhost:5000/api/chats/createuser', {
+            "email": user.email, "id": user.id
+        })
+            .then(function (response) {
+                if (response.data.success) {
+                    flag = true
+                }
+            })
+            .catch(function (error) {
+                console.log('Cant create user');
+            });
+        //save email and id into AsyncStore
+        if(flag){
+            return await this.storeData(user);
+        }
+    }
+
     onLogin(token) {
         if (!token) {
             console.warn('User canceled login')
             this.setState({})
         } else {
             RNAccountKit.getCurrentAccount().then(account => {
-                this.setState({
-                    authToken: token,
-                    loggedAccount: account,
-                })
+                //1. send request to loopback and create user
+                console.log('//== ACCOUNT ==//')
+                const flag = this.postCreateUser(account);
+                if(flag){
+                    this.setState({
+                        authToken: token,
+                        loggedAccount: account,
+                    })
+                }
+                //2. if chatkit has this user, go to main screen
+                // if not, create user and go to main screen
             })
         }
     }
@@ -137,7 +178,7 @@ class SplashScreen extends Component {
 
     render() {
         return (
-            <View style={styles.container}>{this.state.loggedAccount ? this.renderUserLogged() : this.renderLogin()}</View>
+            <View style={styles.container}>{this.state.loggedAccount ? this.goToMainScreen() : this.renderLogin()}</View>
         )
     }
 }

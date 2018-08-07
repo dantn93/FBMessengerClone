@@ -8,7 +8,6 @@ import axios from 'axios';
 
 import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR } from '@config/chatConfig';
 import { LANGUAGES } from '@config/languageArr';
-console.log(LANGUAGES);
 
 class ChatScreen extends React.Component {
   state = {
