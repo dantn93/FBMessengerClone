@@ -27,7 +27,6 @@ class ActiveScreen extends Component {
       const id = await AsyncStorage.getItem('id');
       if (name != null && id != null) {
         // We have data!!
-        console.log('1. ', name);
         this.setState({ name, id });
       }
     } catch (error) {
@@ -42,7 +41,6 @@ class ActiveScreen extends Component {
     .then(res => {
       if(res.data.success){
         const friends = res.data.data.filter(user => user.id != this.state.id);
-        console.log(friends);
         this.setState({friends});
       }
     })
@@ -54,7 +52,6 @@ class ActiveScreen extends Component {
     // retrieve local info ddddd
     await this.getLocalData();
     // retrieve people on chatkit server
-    console.log(this.state);
     await this.getListUsers();
   }
 

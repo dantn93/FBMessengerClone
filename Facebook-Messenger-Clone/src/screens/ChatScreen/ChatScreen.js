@@ -12,7 +12,7 @@ import { LANGUAGES } from '@config/languageArr';
 class ChatScreen extends React.Component {
   state = {
     messages: [],
-    username: '',
+    id: '',
     roomid: '',
     selectFromPicker: false,
     selectToPicker: false,
@@ -24,9 +24,9 @@ class ChatScreen extends React.Component {
 
 
   componentDidMount() {
-    const username = this.props.navigation.getParam("id");
+    const id = this.props.navigation.getParam("id");
     const roomid = this.props.navigation.getParam("roomid");
-    this.setState({ username, roomid });
+    this.setState({ id, roomid });
 
     // This will create a `tokenProvider` object. This object will be later used to make a Chatkit Manager instance.
     const tokenProvider = new Chatkit.TokenProvider({
@@ -37,7 +37,7 @@ class ChatScreen extends React.Component {
     // For the purpose of this example we will use single room-user pair.
     const chatManager = new Chatkit.ChatManager({
       instanceLocator: CHATKIT_INSTANCE_LOCATOR,
-      userId: username,
+      userId: id,
       tokenProvider: tokenProvider
     });
 
@@ -185,7 +185,7 @@ class ChatScreen extends React.Component {
         messages={this.state.messages}
         onSend={messages => this.onSend(messages)}
         user={{
-          _id: this.state.username
+          _id: this.state.id
         }}
         onInputTextChanged={text => this.setState({ translateMessage: text })}
         renderChatFooter={this.renderChatFooter.bind(this)}

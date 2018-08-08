@@ -18,11 +18,9 @@ class MessagesScreen extends Component {
     try {
       const id = await AsyncStorage.getItem('id');
       const name = await AsyncStorage.getItem('name');
-      console.log('id: ', id);
-      console.log('name:', name);
       if (id != null && name != null) {
         // We have data!!
-        await this.setState({ name, id });
+        this.setState({ name, id });
       }
     } catch (error) {
       console.log(error.message);
@@ -45,7 +43,8 @@ class MessagesScreen extends Component {
 
     chatManager.connect()
       .then(currentUser => {
-        const rooms = currentUser.rooms.filter(room => room.userIds.length == 2);
+        const rooms = currentUser.rooms;
+        console.log(rooms);
         if (rooms.length != 0){
           this.setState({ rooms });
         }
@@ -57,23 +56,23 @@ class MessagesScreen extends Component {
 
   onRetrieveRooms = async () => {
     await this.retrieveData();
+    // console.log(this.state);
     await this.retrieveRooms();
   }
 
   componentDidMount() {
-    // this.onRetrieveRooms();
+    this.onRetrieveRooms();
   }
 
   onGoToChatScreen(room) {
-    this.props.dispatch({ type: "GOTO_CHAT", data: { "id": this.state.id, "roomid": room } });
+    this.props.dispatch({ type: "GOTO_CHAT", data: { "id": this.state.id, "roomid": room.id } });
   }
 
-  listItem(item) {
-    roomid = item.item.id;
+  listItem(room) {
     return (
       <View style={styles.viewItem}>
-        <TouchableOpacity onPress={() => this.onGoToChatScreen(roomid)} style={styles.touchItem}>
-          <Text style={styles.personname}>{'RoomName: ' + item.item.name}</Text>
+        <TouchableOpacity onPress={() => this.onGoToChatScreen(room)} style={styles.touchItem}>
+          <Text>{room.id}</Text>
         </TouchableOpacity>
       </View>
     )
@@ -82,11 +81,11 @@ class MessagesScreen extends Component {
   render() {
     return (
       <View style={{ flex: 1 }}>
-        {/* <FlatList
+        <FlatList
           data={this.state.rooms}
-          renderItem={(item) => this.listItem(item)}
+          renderItem={(item) => this.listItem(item.item)}
           keyExtractor={(item, index) => index.toString()}
-        /> */}
+        />
       </View>
     );
   }
@@ -96,27 +95,18 @@ const styles = StyleSheet.create({
   viewItem: {
     width: '100%',
     height: 60,
+    marginBottom: 2,
+    backgroundColor: 'gray',
     marginBottom: 2
   },
   touchItem: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginLeft: 10
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    paddingLeft: 20,
   },
   personname: {
     marginLeft: 5
-  },
-  wave: {
-    width: 40,
-    height: 40,
-    position: 'absolute',
-    right: 10
   }
 })
 
