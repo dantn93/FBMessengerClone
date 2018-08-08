@@ -1,28 +1,57 @@
 import React from "react";
-import { View, Image, StyleSheet, TouchableOpacity, Picker, Text, TextInput } from "react-native";
-import { connect } from 'react-redux';
+import {
+  View,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Picker,
+  Text,
+  Platform,
+  Linking
+} from "react-native";
+import { connect } from "react-redux";
 import { GiftedChat } from "react-native-gifted-chat";
 import Chatkit from "@pusher/chatkit";
-import axios from 'axios';
-// import { TextInput } from 'react-native-paper';
+import axios from "axios";
+import Icon from "@components/Icon";
+import MapView, { Marker } from "react-native-maps";
+var ImagePicker = require("react-native-image-picker");
+import Message from "../../components/ChatView/MyMessage";
 
-import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR } from '@config/chatConfig';
-import { LANGUAGES } from '@config/languageArr';
-console.log(LANGUAGES);
+import {
+  SECRET_KEY,
+  CHATKIT_TOKEN_PROVIDER_ENDPOINT,
+  CHATKIT_INSTANCE_LOCATOR,
+  IMAGE_UPLOAD_URL,
+  IMAGE_API_KEY
+} from "@config/chatConfig";
+import { LANGUAGES } from "@config/languageArr";
 
 class ChatScreen extends React.Component {
   state = {
     messages: [],
-    username: '',
-    roomid: '',
+    username: "",
+    roomid: "",
     selectFromPicker: false,
     selectToPicker: false,
-    fromLanguage: 'vi',
-    toLanguage: 'en',
-    rawMessage: '',
-    translateMessage: ''
-  }
+    fromLanguage: "vi",
+    toLanguage: "en",
+    composingText: "",
+    pendingImages: [],
+    isUploadingImage: false
+  };
 
+  constructor(props) {
+    super(props);
+    this.renderCustomView = this.renderCustomView.bind(this);
+    this.renderMessage = this.renderMessage.bind(this);
+    this.uploadImage = this.uploadImage.bind(this);
+    this.shareImage = this.shareImage.bind(this);
+    this.shareLocation = this.shareLocation.bind(this);
+    this.sendMessage = this.sendMessage.bind(this);
+    this.onSendText = this.onSendText.bind(this);
+    this.onUploadImageFinish = this.onUploadImageFinish.bind(this);
+  }
 
   componentDidMount() {
     const username = this.props.navigation.getParam("username");
@@ -44,11 +73,12 @@ class ChatScreen extends React.Component {
     });
 
     // In order to subscribe to the messages this user is receiving in this room, we need to `connect()` the `chatManager` and have a hook on `onNewMessage`. There are several other hooks that you can use for various scenarios. A comprehensive list can be found [here](https://docs.pusher.com/chatkit/reference/javascript#connection-hooks).
-    chatManager.connect({
-      onAddedToRoom: room => {
-        console.log(`Added to room ${room.id}`);
-      }
-    })
+    chatManager
+      .connect({
+        onAddedToRoom: room => {
+          console.log(`Added to room ${room.id}`);
+        }
+      })
       .then(currentUser => {
         this.currentUser = currentUser;
         this.currentUser.subscribeToRoom({
@@ -59,84 +89,298 @@ class ChatScreen extends React.Component {
         });
       })
       .catch(err => {
-        console.log('Error on connection', err)
-      })
-  };
+        console.log("Error on connection", err);
+      });
+  }
+
+  // Handle message sent from server
   onReceive(data) {
-    const { id, senderId, text, createdAt } = data;
+    const { id, senderId, text, createdAt, attachment } = data;
+
+    // Initialize base message
     const incomingMessage = {
       _id: id,
-      text: text,
       createdAt: new Date(createdAt),
       user: {
         _id: senderId,
-        name: senderId,
-        // avatar: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmXGGuS_PrRhQt73sGzdZvnkQrPXvtA-9cjcPxJLhLo8rW-sVA"
+        name: senderId
       }
     };
+
+    // Add custom props to base message for displaying differnt types of message
+    try {
+      const object = JSON.parse(text);
+      if (object.type === "text") {
+        incomingMessage.text = object.data.text;
+      } else if (object.type === "image") {
+        incomingMessage.image = object.data.link;
+      } else if (object.type === "location") {
+        const location = {
+          latitude: object.data.latitude,
+          longitude: object.data.longitude
+        };
+        incomingMessage.location = location;
+      } else {
+        incomingMessage.text = text;
+      }
+    } catch (error) {
+      // The JSON parse exception means this is a simple text message. So we set text to it.
+      incomingMessage.text = text;
+    }
 
     this.setState(previousState => ({
       messages: GiftedChat.append(previousState.messages, incomingMessage)
     }));
   }
 
-  onSend([message]) {
-    this.currentUser.sendMessage({
+  // Send simple text message
+  onSendText([message]) {
+    const textMessage = {
       text: message.text,
       roomId: this.state.roomid
-    });
+    };
+    this.currentUser.sendMessage(textMessage);
     this.setState({
-      rawMessage: '',
-      translateMessage: ''
+      composingText: ""
     });
   }
 
-  onGoBack() {
-    this.props.dispatch({ type: 'GO_BACK' });
+  // Send image and location message
+  sendMessage(message) {
+    this.currentUser.sendMessage(message);
   }
 
-  onTranslate = () => {
-    console.log(this.state.fromLanguage);
-    console.log(this.state.toLanguage);
-    console.log(this.state.rawMessage);
-    axios.post('http://localhost:4000/translate', {
-      "rawMessage": this.state.rawMessage,
-      "fromLanguage": this.state.fromLanguage,
-      "toLanguage": this.state.toLanguage
-    })
-      .then(res => {
-        if (res.status == 200) {
+  // Create and send image message
+  shareImage(url) {
+    const textToSend = this.getImageMessageData(url);
+    const message = {
+      text: textToSend,
+      roomId: this.state.roomid
+    };
+    this.sendMessage(message);
+  }
 
-          this.setState({ translateMessage: res.data });
-        } else {
-          this.setState({ translateMessage: '' });
-        }
-      })
-      .catch(err => console.log('Cant send translated request to server'));
+  // Create and send location message
+  shareLocation() {
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        const textToSend = this.getLocationMessageData(latitude, longitude);
+        const message = {
+          text: textToSend,
+          roomId: this.state.roomid
+        };
+        this.sendMessage(message);
+      },
+      error => alert(error.message),
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+    );
+  }
+
+  // Create text message object
+  getTextMessageData(text) {
+    const message = {
+      type: "text",
+      data: {
+        text: text
+      }
+    };
+    return JSON.stringify(message);
+  }
+
+  // Create image message object
+  getImageMessageData(link) {
+    const message = {
+      type: "image",
+      data: {
+        link: link
+      }
+    };
+    return JSON.stringify(message);
+  }
+
+  // Create location message object
+  getLocationMessageData(latitude, longitude) {
+    const message = {
+      type: "location",
+      data: {
+        latitude: latitude,
+        longitude: longitude
+      }
+    };
+    return JSON.stringify(message);
+  }
+
+  // Handle back button
+  onGoBack() {
+    this.props.dispatch({ type: "GO_BACK" });
+  }
+
+  // Show attach image options
+  onAttachImage = () => {
+    var options = {
+      title: "Select Photo",
+      customButtons: [{ name: "fb", title: "Choose Photo from Facebook" }],
+      storageOptions: {
+        skipBackup: true,
+        path: "images"
+      }
+    };
+    ImagePicker.showImagePicker(options, response => {
+      if (response.didCancel) {
+        console.log("User cancelled image picker");
+      } else if (response.error) {
+        console.log("ImagePicker Error: ", response.error);
+      } else if (response.customButton) {
+        console.log("User tapped custom button: ", response.customButton);
+      } else {
+        this.setState(
+          {
+            pendingImages: [...this.state.pendingImages, response.data]
+          },
+          () => {
+            if (this.state.pendingImages.length == 1) {
+              this.uploadImage(this.state.pendingImages[0]);
+            }
+          }
+        );
+      }
+    });
+  };
+
+  // Upload image to server
+  uploadImage(base64) {
+    if (!this.state.isUploadingImage) {
+      this.setState({ isUploadingImage: true }, () => {
+        axios
+          .post(
+            IMAGE_UPLOAD_URL,
+            {
+              image: base64
+            },
+            {
+              headers: {
+                Authorization: "Client-ID " + IMAGE_API_KEY
+              }
+            }
+          )
+          .then(response => {
+            // Share image when success
+            if (response.status === 200) {
+              const url = response.data.data.link;
+              this.shareImage(url);
+            }
+            this.onUploadImageFinish();
+          })
+          .catch(error => {
+            console.log("Can not upload image: " + error);
+            this.onUploadImageFinish();
+          });
+      });
+    }
+  }
+
+  // Remove image data from pending images whether the upload task is succeeded for failed
+  onUploadImageFinish() {
+    let pendingImages = this.state.pendingImages;
+    pendingImages.splice(0, 1);
+    if (pendingImages.length === 0) {
+      this.setState({ pendingImages, isUploadingImage: false });
+    } else {
+      this.setState({ pendingImages, isUploadingImage: true }, () => {
+        this.uploadImage(pendingImages[0]);
+      });
+    }
   }
 
   renderPicker() {
     if (this.state.selectFromPicker || this.state.selectToPicker) {
-      return <Picker
-        selectedValue={this.state.language}
-        style={{ width: '100%', backgroundColor: '#fafafa', position: 'absolute', bottom: 0 }}
-        onValueChange={(itemValue, itemIndex) => {
-          this.state.selectFromPicker ? this.setState({
-            fromLanguage: itemValue,
-            selectFromPicker: false,
-            selectToPicker: false
-          }) : this.setState({
-            toLanguage: itemValue,
-            selectFromPicker: false,
-            selectToPicker: false
-          });
-        }}>
-        {LANGUAGES.map(e => <Picker.Item key={e.id} label={e.label} value={e.value} />)}
-      </Picker>
+      return (
+        <Picker
+          selectedValue={this.state.language}
+          style={{
+            width: "100%",
+            backgroundColor: "#fafafa",
+            position: "absolute",
+            bottom: 0
+          }}
+          onValueChange={(itemValue, itemIndex) => {
+            this.state.selectFromPicker
+              ? this.setState({
+                  fromLanguage: itemValue,
+                  selectFromPicker: false,
+                  selectToPicker: false
+                })
+              : this.setState({
+                  toLanguage: itemValue,
+                  selectFromPicker: false,
+                  selectToPicker: false
+                });
+          }}
+        >
+          {LANGUAGES.map(e => (
+            <Picker.Item key={e.id} label={e.label} value={e.value} />
+          ))}
+        </Picker>
+      );
     } else {
       return null;
     }
+  }
 
+  // Custom location message's view. Click on it to view the map in the Map Kit.
+  renderCustomView = props => {
+    if (props.currentMessage.location) {
+      const latitude = props.currentMessage.location.latitude;
+      const longitude = props.currentMessage.location.longitude;
+      return (
+        <TouchableOpacity
+          onPress={() => {
+            const url = Platform.select({
+              ios: `http://maps.apple.com/?ll=${latitude},${longitude}`,
+              android: `http://maps.google.com/?q=${latitude},${longitude}`
+            });
+            Linking.canOpenURL(url)
+              .then(supported => {
+                if (supported) {
+                  return Linking.openURL(url);
+                }
+              })
+              .catch(err => {
+                console.error("Can not open map", err);
+              });
+          }}
+        >
+          <MapView
+            style={styles.mapView}
+            provider="google"
+            initialRegion={{
+              latitude: latitude,
+              longitude: longitude,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421
+            }}
+            scrollEnabled={false}
+            zoomEnabled={false}
+          >
+            <Marker
+              coordinate={{
+                latitude: latitude,
+                longitude: longitude
+              }}
+            />
+          </MapView>
+        </TouchableOpacity>
+      );
+    }
+
+    return null;
+  };
+
+  // Custom message's view
+  renderMessage(props) {
+    return <Message {...props} />;
   }
 
   renderChatFooter(props) {
@@ -144,59 +388,77 @@ class ChatScreen extends React.Component {
       <View>
         <View style={styles.footerselectlang}>
           <Text style={styles.translatelabel}>Translate from: </Text>
-          <TouchableOpacity style={styles.touchfrom}
-            onPress={() => this.setState({ selectFromPicker: true, selectToPicker: false })}
+          <TouchableOpacity
+            style={styles.touchfrom}
+            onPress={() =>
+              this.setState({ selectFromPicker: true, selectToPicker: false })
+            }
           >
-            <Text style={{ fontSize: 14 }}>{LANGUAGES.filter(e => e.value == this.state.fromLanguage).map(e => e.label)}</Text>
+            <Text style={{ fontSize: 14 }}>
+              {LANGUAGES.filter(e => e.value == this.state.fromLanguage).map(
+                e => e.label
+              )}
+            </Text>
           </TouchableOpacity>
           <Text style={styles.to}>to: </Text>
-          <TouchableOpacity style={styles.touchfrom}
-            onPress={() => this.setState({ selectFromPicker: false, selectToPicker: true })}
+          <TouchableOpacity
+            style={styles.touchfrom}
+            onPress={() =>
+              this.setState({ selectFromPicker: false, selectToPicker: true })
+            }
           >
-            <Text style={{ fontSize: 14 }}>{LANGUAGES.filter(e => e.value == this.state.toLanguage).map(e => e.label)}</Text>
+            <Text style={{ fontSize: 14 }}>
+              {LANGUAGES.filter(e => e.value == this.state.toLanguage).map(
+                e => e.label
+              )}
+            </Text>
           </TouchableOpacity>
         </View>
         <View style={styles.rawmessbox}>
-          <View style={{ flex: 8.5 }}>
-            <TextInput
-              multiline={true}
-              style={styles.rawmessage}
-              placeholder={'Type a message to translate...'}
-              onChangeText={(text) => this.setState({ rawMessage: text })}
-              value={this.state.rawMessage}
-            />
-          </View>
           <View style={styles.boxbuttontranslate}>
-            <TouchableOpacity
-              style={{ width: '80%', height: '80%' }}
-              onPress={this.onTranslate}
-            >
-              <Image source={require('@assets/images/icons8-google-translate-96.png')} style={{ width: '100%', height: '100%' }} />
-            </TouchableOpacity>
+            <Icon
+              name="image"
+              type="fontawesome"
+              onPress={this.onAttachImage}
+              style={{ marginRight: 8 }}
+            />
+            <Icon name="location" type="entypo" onPress={this.shareLocation} />
           </View>
         </View>
         {this.renderPicker()}
       </View>
-    )
+    );
   }
 
   render() {
-    return <View style={styles.container}>
-      <GiftedChat
-        text={this.state.translateMessage}
-        messages={this.state.messages}
-        onSend={messages => this.onSend(messages)}
-        user={{
-          _id: this.state.username
-        }}
-        onInputTextChanged={text => this.setState({ translateMessage: text })}
-        renderChatFooter={this.renderChatFooter.bind(this)}
-      />
+    return (
+      <View style={styles.container}>
+        <GiftedChat
+          text={this.state.composingText}
+          messages={this.state.messages}
+          onSend={messages => this.onSendText(messages)}
+          user={{
+            _id: this.state.username
+          }}
+          onInputTextChanged={text => {
+            this.setState({ composingText: text });
+          }}
+          renderChatFooter={this.renderChatFooter.bind(this)}
+          renderCustomView={this.renderCustomView}
+          renderMessage={this.renderMessage}
+        />
 
-      <TouchableOpacity style={styles.touchBack} onPress={() => this.onGoBack()}>
-        <Image source={require('@assets/images/icons8-back-filled-100.png')} style={styles.backImage} />
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity
+          style={styles.touchBack}
+          onPress={() => this.onGoBack()}
+        >
+          <Image
+            source={require("@assets/images/icons8-back-filled-100.png")}
+            style={styles.backImage}
+          />
+        </TouchableOpacity>
+      </View>
+    );
   }
 }
 
@@ -207,7 +469,7 @@ const styles = StyleSheet.create({
   touchBack: {
     width: 30,
     height: 30,
-    position: 'absolute',
+    position: "absolute",
     zIndex: 1
   },
   backImage: {
@@ -217,12 +479,12 @@ const styles = StyleSheet.create({
     left: 10
   },
   footerselectlang: {
-    flexDirection: 'row',
-    width: '100%',
+    flexDirection: "row",
+    width: "100%",
     height: 40,
-    alignItems: 'center',
+    alignItems: "center",
     borderTopWidth: 1,
-    borderColor: '#707070'
+    borderColor: "#707070"
   },
   translatelabel: {
     flex: 2.5,
@@ -232,11 +494,11 @@ const styles = StyleSheet.create({
   touchfrom: {
     flex: 2.2,
     marginLeft: 5,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     height: 25,
     borderRadius: 5,
-    alignItems: 'center',
-    justifyContent: 'center'
+    alignItems: "center",
+    justifyContent: "center"
   },
   to: {
     flex: 0.5,
@@ -245,29 +507,33 @@ const styles = StyleSheet.create({
   },
   rawmessage: {
     height: 40,
-    width: '100%',
-    backgroundColor: 'white',
+    width: "100%",
+    backgroundColor: "white",
     borderRadius: 5,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingLeft: 5,
-    justifyContent: 'center',
+    justifyContent: "center",
     fontSize: 16
   },
-  rawmessbox: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginLeft: 5, 
-    marginRight: 5, 
-    marginBottom: 3 
+  rawmessbox: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 3
   },
-  boxbuttontranslate: { 
-    flex: 1.5,
-    marginLeft: 5,
-    marginRight: 5,
+  boxbuttontranslate: {
+    flexDirection: "row",
+    marginLeft: 8,
+    marginRight: 8,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center'
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  mapView: {
+    width: 150,
+    height: 100,
+    borderRadius: 13,
+    margin: 3
   }
-})
+});
 
 export default connect()(ChatScreen);
