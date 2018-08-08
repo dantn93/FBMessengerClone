@@ -8,7 +8,6 @@ import axios from 'axios';
 
 import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR } from '@config/chatConfig';
 import { LANGUAGES } from '@config/languageArr';
-console.log(LANGUAGES);
 
 class ChatScreen extends React.Component {
   state = {
@@ -25,9 +24,8 @@ class ChatScreen extends React.Component {
 
 
   componentDidMount() {
-    const username = this.props.navigation.getParam("username");
+    const username = this.props.navigation.getParam("id");
     const roomid = this.props.navigation.getParam("roomid");
-    console.log(roomid);
     this.setState({ username, roomid });
 
     // This will create a `tokenProvider` object. This object will be later used to make a Chatkit Manager instance.
