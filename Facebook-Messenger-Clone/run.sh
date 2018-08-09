@@ -8,7 +8,6 @@ case "$1" in
       'install')
             yarn install
             react-native eject
-            react-native link
             react-native link react-native-facebook-account-kit
             ;;
       'reset')

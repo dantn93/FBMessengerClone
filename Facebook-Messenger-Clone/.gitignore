@@ -4,7 +4,7 @@
 
 # Xcode
 #
-build/
+ios/build
 *.pbxuser
 !default.pbxuser
 *.mode1v3
@@ -24,7 +24,8 @@ project.xcworkspace
 
 # Android/IntelliJ
 #
-build/
+android/build
+android/app/build
 .idea
 .gradle
 local.properties
@@ -36,8 +37,8 @@ node_modules/
 npm-debug.log
 yarn-error.log
 yarn.lock
-Podfile.lock
-Pods/
+ios/Podfile.lock
+ios/Pods
 
 # BUCK
 buck-out/
