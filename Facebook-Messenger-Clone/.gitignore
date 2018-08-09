@@ -35,6 +35,9 @@ local.properties
 node_modules/
 npm-debug.log
 yarn-error.log
+yarn.lock
+Podfile.lock
+Pods/
 
 # BUCK
 buck-out/

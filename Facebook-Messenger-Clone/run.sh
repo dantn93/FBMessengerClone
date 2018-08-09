@@ -9,6 +9,7 @@ case "$1" in
             yarn install
             react-native eject
             react-native link
+            react-native link react-native-facebook-account-kit
             ;;
       'reset')
             watchman watch-del-all

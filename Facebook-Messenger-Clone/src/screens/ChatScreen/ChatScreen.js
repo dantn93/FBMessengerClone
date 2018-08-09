@@ -16,8 +16,7 @@ import axios from "axios";
 import Icon from "@components/Icon";
 import MapView, { Marker } from "react-native-maps";
 var ImagePicker = require("react-native-image-picker");
-import Message from "../../components/ChatView/MyMessage";
-
+import Message from "../../components/ChatView/Message";
 import {
   SECRET_KEY,
   CHATKIT_TOKEN_PROVIDER_ENDPOINT,
@@ -26,11 +25,12 @@ import {
   IMAGE_API_KEY
 } from "@config/chatConfig";
 import { LANGUAGES } from "@config/languageArr";
+import { url } from '@config/loopBackConfig';
 
 class ChatScreen extends React.Component {
   state = {
     messages: [],
-    username: "",
+    id: "",
     roomid: "",
     selectFromPicker: false,
     selectToPicker: false,
@@ -54,10 +54,10 @@ class ChatScreen extends React.Component {
   }
 
   componentDidMount() {
-    const username = this.props.navigation.getParam("username");
+    const id = this.props.navigation.getParam("id");
     const roomid = this.props.navigation.getParam("roomid");
     console.log(roomid);
-    this.setState({ username, roomid });
+    this.setState({ id, roomid });
 
     // This will create a `tokenProvider` object. This object will be later used to make a Chatkit Manager instance.
     const tokenProvider = new Chatkit.TokenProvider({
@@ -68,7 +68,7 @@ class ChatScreen extends React.Component {
     // For the purpose of this example we will use single room-user pair.
     const chatManager = new Chatkit.ChatManager({
       instanceLocator: CHATKIT_INSTANCE_LOCATOR,
-      userId: username,
+      userId: id,
       tokenProvider: tokenProvider
     });
 
@@ -438,7 +438,7 @@ class ChatScreen extends React.Component {
           messages={this.state.messages}
           onSend={messages => this.onSendText(messages)}
           user={{
-            _id: this.state.username
+            _id: this.state.id
           }}
           onInputTextChanged={text => {
             this.setState({ composingText: text });

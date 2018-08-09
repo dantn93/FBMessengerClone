@@ -8,17 +8,19 @@ import axios from 'axios';
 
 class MessagesScreen extends Component {
   state = {
-    username: '',
+    name: '',
+    id: '',
     rooms: []
   }
 
   //get username and avatar in AsyncStorage
   retrieveData = async () => {
     try {
-      const username = await AsyncStorage.getItem('username');
-      if (username != null) {
+      const id = await AsyncStorage.getItem('id');
+      const name = await AsyncStorage.getItem('name');
+      if (id != null && name != null) {
         // We have data!!
-        await this.setState({ username });
+        this.setState({ name, id });
       }
     } catch (error) {
       console.log(error.message);
@@ -35,13 +37,14 @@ class MessagesScreen extends Component {
     // For the purpose of this example we will use single room-user pair.
     const chatManager = new Chatkit.ChatManager({
       instanceLocator: CHATKIT_INSTANCE_LOCATOR,
-      userId: this.state.username,
+      userId: this.state.id,
       tokenProvider: tokenProvider
     })
 
     chatManager.connect()
       .then(currentUser => {
-        const rooms = currentUser.rooms.filter(room => room.userIds.length == 2);
+        const rooms = currentUser.rooms;
+        console.log(rooms);
         if (rooms.length != 0){
           this.setState({ rooms });
         }
@@ -53,6 +56,7 @@ class MessagesScreen extends Component {
 
   onRetrieveRooms = async () => {
     await this.retrieveData();
+    // console.log(this.state);
     await this.retrieveRooms();
   }
 
@@ -61,15 +65,14 @@ class MessagesScreen extends Component {
   }
 
   onGoToChatScreen(room) {
-    this.props.dispatch({ type: "GOTO_CHAT", data: { "username": this.state.username, "roomid": room } });
+    this.props.dispatch({ type: "GOTO_CHAT", data: { "id": this.state.id, "roomid": room.id } });
   }
 
-  listItem(item) {
-    roomid = item.item.id;
+  listItem(room) {
     return (
       <View style={styles.viewItem}>
-        <TouchableOpacity onPress={() => this.onGoToChatScreen(roomid)} style={styles.touchItem}>
-          <Text style={styles.personname}>{'RoomName: ' + item.item.name}</Text>
+        <TouchableOpacity onPress={() => this.onGoToChatScreen(room)} style={styles.touchItem}>
+          <Text>{room.id}</Text>
         </TouchableOpacity>
       </View>
     )
@@ -80,7 +83,7 @@ class MessagesScreen extends Component {
       <View style={{ flex: 1 }}>
         <FlatList
           data={this.state.rooms}
-          renderItem={(item) => this.listItem(item)}
+          renderItem={(item) => this.listItem(item.item)}
           keyExtractor={(item, index) => index.toString()}
         />
       </View>
@@ -92,27 +95,18 @@ const styles = StyleSheet.create({
   viewItem: {
     width: '100%',
     height: 60,
+    marginBottom: 2,
+    backgroundColor: 'gray',
     marginBottom: 2
   },
   touchItem: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginLeft: 10
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    paddingLeft: 20,
   },
   personname: {
     marginLeft: 5
-  },
-  wave: {
-    width: 40,
-    height: 40,
-    position: 'absolute',
-    right: 10
   }
 })
 

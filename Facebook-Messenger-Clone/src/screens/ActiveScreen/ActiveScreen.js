@@ -6,51 +6,65 @@ import { connect } from 'react-redux';
 import Chatkit from "@pusher/chatkit";
 import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR } from '@config/chatConfig';
 import axios from 'axios';
+import { url } from '@config/loopBackConfig';
+
+// This will create a `tokenProvider` object. This object will be later used to make a Chatkit Manager instance.
+const tokenProvider = new Chatkit.TokenProvider({
+  url: CHATKIT_TOKEN_PROVIDER_ENDPOINT
+});
 
 class ActiveScreen extends Component {
   state = {
-    people: [],
-    username: '',
-    roomid: 0
+    friends: [],
+    name: '', //email or phone number
+    id: '', //userid
+    roomid: null
   }
 
-  retrieveData = async () => {
+  getLocalData = async () => {
     try {
-      const username = await AsyncStorage.getItem('username');
-      const avatar = await AsyncStorage.getItem('avatar');
-      if (username != null) {
+      const name = await AsyncStorage.getItem('name');
+      const id = await AsyncStorage.getItem('id');
+      if (name != null && id != null) {
         // We have data!!
-        await this.setState({ username });
+        this.setState({ name, id });
       }
     } catch (error) {
       // Error retrieving data
       console.log('Retrieve data from AsyncStore');
     }
   }
-  getFakeData = async () => {
-    await this.retrieveData();
-    const friends = await users.results.slice(0, 10).filter(user => user.login.username != this.state.username);
-    await this.setState({ people: friends });
+
+  getListUsers(){ //retrieve people in chatkit server
+    axios.post(url + 'chats/getlistusers', {
+    })
+    .then(res => {
+      if(res.data.success){
+        const friends = res.data.data.filter(user => user.id != this.state.id);
+        this.setState({friends});
+      }
+    })
+    .catch(function(error){
+      console.log(error.message);
+    });
   }
-  componentDidMount() {
-    this.getFakeData();
+  retrievetData = async () => {
+    // retrieve local info ddddd
+    await this.getLocalData();
+    // retrieve people on chatkit server
+    await this.getListUsers();
   }
 
-  componentWillUnmount(){
-    console.log('UNMOUNT');
+  componentDidMount() {
+    this.retrievetData();
   }
 
   createRoom(item, roomname) {
-    // This will create a `tokenProvider` object. This object will be later used to make a Chatkit Manager instance.
-    const tokenProvider = new Chatkit.TokenProvider({
-      url: CHATKIT_TOKEN_PROVIDER_ENDPOINT
-    });
-
     // This will instantiate a `chatManager` object. This object can be used to subscribe to any number of rooms and users and corresponding messages.
     // For the purpose of this example we will use single room-user pair.
     const chatManager = new Chatkit.ChatManager({
       instanceLocator: CHATKIT_INSTANCE_LOCATOR,
-      userId: this.state.username,
+      userId: this.state.id,
       tokenProvider: tokenProvider
     });
 
@@ -59,7 +73,7 @@ class ActiveScreen extends Component {
       currentUser.createRoom({
         name: roomname,
         private: true,
-        addUserIds: [this.state.username, item.item.login.username]
+        addUserIds: [this.state.id, item.id]
       }).then(room => {
         console.log('ROOM ', room);
         this.goToChatScreen(room);
@@ -71,38 +85,33 @@ class ActiveScreen extends Component {
   }
 
   retrieveRooms(item) {
-    console.log('BEGIN RETRIEVE ROOMS');
-    // This will create a `tokenProvider` object. This object will be later used to make a Chatkit Manager instance.
-    const tokenProvider = new Chatkit.TokenProvider({
-      url: CHATKIT_TOKEN_PROVIDER_ENDPOINT
-    });
-
     // This will instantiate a `chatManager` object. This object can be used to subscribe to any number of rooms and users and corresponding messages.
     // For the purpose of this example we will use single room-user pair.
     const chatManager = new Chatkit.ChatManager({
       instanceLocator: CHATKIT_INSTANCE_LOCATOR,
-      userId: this.state.username,
+      userId: this.state.id,
       tokenProvider: tokenProvider
     });
 
-    const roomname = item.item.login.username + '-' + this.state.username;
+    const roomname = item.id + '-' + this.state.id;
     console.log(roomname);
     chatManager.connect()
       .then(currentUser => {
+        console.log(currentUser.rooms);
         var rooms = currentUser.rooms.filter(e => e.name == roomname);
-        if (rooms.length != 0) { //exist roomname
+        if (rooms.length != 0) { //roomname exist
           this.goToChatScreen(rooms[0]);
         } else {
           // check inver_roomname
           console.log('INVERT ROOM NAME');
-          const invert_roomname = this.state.username + '-' + item.item.login.username;
+          const invert_roomname = this.state.id + '-' + item.id;
           rooms = currentUser.rooms.filter(e => e.name == invert_roomname);
           console.log(rooms);
           if (rooms.length != 0) {
             this.goToChatScreen(rooms[0]);
           } else {
-            console.log('Create room: ', invert_roomname);
-            this.createRoom(item, invert_roomname);
+            console.log('Create room: ', roomname);
+            this.createRoom(item, roomname);
           }
         }
       })
@@ -112,42 +121,20 @@ class ActiveScreen extends Component {
   }
 
   onChatOneToOne(item) {
-    const retrieveRooms = () => this.retrieveRooms(item);
-    //1. check the friend existing
-    const code = 0;
-    axios.post('http://localhost:4000/check/user', {
-      "name": item.item.login.username,
-      "id": item.item.login.username,
-      "avatar": item.item.picture.thumbnail
-    })
-      .then(function (response) {
-        //2. check the room existing
-        if (response.status == 200) {
-          console.log(response.status);
-          retrieveRooms();
-        } else {
-          console.log('Friend dont exist');
-        }
-      })
-      .catch(function (error) {
-        console.log('Cant check friend existing');
-      });
+    //1. check the room existing
+    this.retrieveRooms(item.item);
   }
 
   goToChatScreen(room) {
-
-    this.props.dispatch({ type: "GOTO_CHAT", data: { "username": this.state.username, "roomid": room.id } })
+    this.props.dispatch({ type: "GOTO_CHAT", data: { "id": this.state.id, "roomid": room.id } })
   }
 
   listItem(item) {
     return (
       <View style={styles.viewItem}>
         <TouchableOpacity onPress={() => this.onChatOneToOne(item)} style={styles.touchItem}>
-          <Image source={{ uri: item.item.picture.thumbnail }} style={styles.avatar} />
-          <Text style={styles.personname}>{item.item.name.first}</Text>
-          <Image source={require('@assets/images/wave.png')} style={styles.wave} />
+          <Text>{item.item.name}</Text>
         </TouchableOpacity>
-
       </View>
     )
   }
@@ -155,9 +142,9 @@ class ActiveScreen extends Component {
   render() {
     return (
       <View style={BottomScreenStyles.container}>
-        {this.state.people != [] ?
+        {this.state.friends != [] ?
           <FlatList
-            data={this.state.people}
+            data={this.state.friends}
             renderItem={(item) => this.listItem(item)}
             keyExtractor={(item, index) => index.toString()}
           />
@@ -174,27 +161,17 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 60,
     marginBottom: 2,
-
+    backgroundColor: 'gray',
+    marginBottom: 2
   },
   touchItem: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginLeft: 10
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    paddingLeft: 20,
   },
   personname: {
     marginLeft: 5
-  },
-  wave: {
-    width: 40,
-    height: 40,
-    position: 'absolute',
-    right: 10
   }
 })
 

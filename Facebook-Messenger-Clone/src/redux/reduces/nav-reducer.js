@@ -14,7 +14,7 @@ const navigationReducer = (state = initialNavState, action) => {
         case 'GOTO_CHAT':
             nextState = MessengerApp.router.getStateForAction(
             NavigationActions.navigate({routeName: 'ChatScreen', params: {
-                "username": action.data.username,
+                "id": action.data.id,
                 "roomid": action.data.roomid
             }}),
             state );
