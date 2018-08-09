@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, AsyncStorage } from 'react-native';
 import { BottomScreenStyles } from '@config/styles';
-import { users } from '@assets/fake_data';
 import { connect } from 'react-redux';
 import Chatkit from "@pusher/chatkit";
 import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR } from '@config/chatConfig';
@@ -49,7 +48,7 @@ class ActiveScreen extends Component {
     });
   }
   retrievetData = async () => {
-    // retrieve local info ddddd
+    // retrieve local info 
     await this.getLocalData();
     // retrieve people on chatkit server
     await this.getListUsers();
@@ -121,7 +120,7 @@ class ActiveScreen extends Component {
   }
 
   onChatOneToOne(item) {
-    //1. check the room existing
+    //check the room existing
     this.retrieveRooms(item.item);
   }
 

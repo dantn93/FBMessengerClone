@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { View, TextInput, AsyncStorage, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Button } from 'react-native-paper';
 import { connect } from 'react-redux';
-import { users } from '@assets/fake_data';
 import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR } from '@config/chatConfig';
 import axios from 'axios';
 import RNAccountKit, { LoginButton, Color, StatusBarStyle } from 'react-native-facebook-account-kit';

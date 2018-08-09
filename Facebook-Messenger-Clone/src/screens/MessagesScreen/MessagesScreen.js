@@ -44,7 +44,6 @@ class MessagesScreen extends Component {
     chatManager.connect()
       .then(currentUser => {
         const rooms = currentUser.rooms;
-        console.log(rooms);
         if (rooms.length != 0){
           this.setState({ rooms });
         }

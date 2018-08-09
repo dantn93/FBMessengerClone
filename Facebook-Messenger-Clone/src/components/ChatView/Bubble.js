@@ -12,7 +12,6 @@ import {
   ViewPropTypes
 } from "react-native";
 import axios from "axios";
-
 import {
   MessageText,
   MessageImage,
@@ -20,6 +19,7 @@ import {
   utils
 } from "react-native-gifted-chat";
 import Color from "./Color";
+import { url } from '@config/loopBackConfig';
 
 const { isSameUser, isSameDay, warnDeprecated } = utils;
 
@@ -69,17 +69,19 @@ export default class Bubble extends React.Component {
   onTranslate = text => {
     // Update translate action text
     this.setState({ translateAction: "Translating..." }, () => {
+      console.log(url);
       axios
-        .post("http://localhost:4000/translate", {
+        .post(url + "chats/translate", {
           rawMessage: text,
           fromLanguage: "en",
           toLanguage: "vi"
         })
         .then(res => {
           // Update translate action text and translated text
-          if (res.status == 200) {
+          console.log(res);
+          if (res.data.success) {
             this.setState({
-              translatedText: res.data,
+              translatedText: res.data.data,
               translateAction: "Show origin",
               isTranslated: true
             });
@@ -91,7 +93,7 @@ export default class Bubble extends React.Component {
           }
         })
         .catch(err => {
-          this.setState({ translateAction: "Translate", isTranslated: false });
+          this.setState({ translateAction: "Translate...", isTranslated: false });
           console.log("Could not send translated request to server");
         });
     });

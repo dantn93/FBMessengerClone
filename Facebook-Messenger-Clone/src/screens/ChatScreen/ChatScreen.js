@@ -56,7 +56,6 @@ class ChatScreen extends React.Component {
   componentDidMount() {
     const id = this.props.navigation.getParam("id");
     const roomid = this.props.navigation.getParam("roomid");
-    console.log(roomid);
     this.setState({ id, roomid });
 
     // This will create a `tokenProvider` object. This object will be later used to make a Chatkit Manager instance.
@@ -331,6 +330,7 @@ class ChatScreen extends React.Component {
 
   // Custom location message's view. Click on it to view the map in the Map Kit.
   renderCustomView = props => {
+    console.log(props.currentMessage);
     if (props.currentMessage.location) {
       const latitude = props.currentMessage.location.latitude;
       const longitude = props.currentMessage.location.longitude;
@@ -380,7 +380,9 @@ class ChatScreen extends React.Component {
 
   // Custom message's view
   renderMessage(props) {
-    return <Message {...props} />;
+    return <Message 
+    language={{from: this.state.fromLanguage, to: this.state.toLanguage}} 
+    {...props} />;
   }
 
   renderChatFooter(props) {
