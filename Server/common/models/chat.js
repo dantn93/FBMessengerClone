@@ -54,28 +54,21 @@ module.exports = function (Chat) {
 
     Chat.translate = function (params, fn) {
         fn = fn || utils.createPromiseCallback();
-        console.log(params);
-        // const { name, id } = params;
         const rawMessage = params.rawMessage;
         const toLanguage = params.toLanguage;
         const fromLanguage = params.fromLanguage;
-        console.log('//== TRANSLATION ==//')
-        console.log('RawMessage: ',rawMessage);
-        console.log('From: ', fromLanguage);
-        console.log('To: ', toLanguage);
         
-        if(rawMessage != '' && fromLanguage != '' && toLanguage != ''){
-            translate(rawMessage, {from: fromLanguage, to: toLanguage})
+        if(rawMessage != '' && toLanguage != ''){
+            translate(rawMessage, {to: toLanguage})
             .then(restext => {
-              console.log('TranslatedMessage: ', restext.text);
-              console.log('//== END ==//')
-              fn(null, {success: true, data: restext.text});
+            fn(null, {success: true, data: restext.text});
             }).catch(err => {
                 fn(null, {success: false, status: 'Cant translate'});
             });
-          }else{
+        }
+        else{
             fn(null, {success: false, status: 'rawMessage or language is a empty string'});
-          }
+        }
 
         return fn.promise;
     }

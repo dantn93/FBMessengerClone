@@ -9,7 +9,9 @@ import {
   TouchableWithoutFeedback,
   TouchableOpacity,
   View,
-  ViewPropTypes
+  ViewPropTypes,
+  Platform, 
+  NativeModules
 } from "react-native";
 import axios from "axios";
 import {
@@ -31,13 +33,33 @@ export default class Bubble extends React.Component {
       isTranslated: false,
       translateAction: "Translate",
       text: props.currentMessage.text,
-      translatedText: props.currentMessage.text
-    };
+      translatedText: props.currentMessage.text,
+      languageLocale: ''
+    }
 
     this.onLongPress = this.onLongPress.bind(this);
     this.onTranslate = this.onTranslate.bind(this);
     this.showOriginText = this.showOriginText.bind(this);
     this.renderMessageText = this.renderMessageText.bind(this);
+  }
+
+  componentDidMount(){
+    this.getDeviceLanguage();
+  }
+
+  //get device language (en, vi,...)
+  getDeviceLanguage(){
+    // If we have an Android phone
+    if (Platform.OS === "android") {
+      langRegionLocale = NativeModules.I18nManager.localeIdentifier || "";
+    } else if (Platform.OS === "ios") {
+      langRegionLocale = NativeModules.SettingsManager.settings.AppleLocale || "";
+    }
+    
+    // "en_US" -> "en", "es_CL" -> "es", etc
+    let languageLocale = langRegionLocale.substring(0, 2); // get first two characters
+    console.log(languageLocale);
+    this.setState({languageLocale});
   }
 
   // Show copy text option on long press
@@ -69,16 +91,14 @@ export default class Bubble extends React.Component {
   onTranslate = text => {
     // Update translate action text
     this.setState({ translateAction: "Translating..." }, () => {
-      console.log(url);
       axios
         .post(url + "chats/translate", {
           rawMessage: text,
-          fromLanguage: "en",
-          toLanguage: "vi"
+          fromLanguage: '',
+          toLanguage: this.state.languageLocale
         })
         .then(res => {
           // Update translate action text and translated text
-          console.log(res);
           if (res.data.success) {
             this.setState({
               translatedText: res.data.data,

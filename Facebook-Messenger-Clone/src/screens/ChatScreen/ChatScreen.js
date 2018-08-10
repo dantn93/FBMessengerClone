@@ -293,44 +293,8 @@ class ChatScreen extends React.Component {
     }
   }
 
-  renderPicker() {
-    if (this.state.selectFromPicker || this.state.selectToPicker) {
-      return (
-        <Picker
-          selectedValue={this.state.language}
-          style={{
-            width: "100%",
-            backgroundColor: "#fafafa",
-            position: "absolute",
-            bottom: 0
-          }}
-          onValueChange={(itemValue, itemIndex) => {
-            this.state.selectFromPicker
-              ? this.setState({
-                  fromLanguage: itemValue,
-                  selectFromPicker: false,
-                  selectToPicker: false
-                })
-              : this.setState({
-                  toLanguage: itemValue,
-                  selectFromPicker: false,
-                  selectToPicker: false
-                });
-          }}
-        >
-          {LANGUAGES.map(e => (
-            <Picker.Item key={e.id} label={e.label} value={e.value} />
-          ))}
-        </Picker>
-      );
-    } else {
-      return null;
-    }
-  }
-
   // Custom location message's view. Click on it to view the map in the Map Kit.
   renderCustomView = props => {
-    console.log(props.currentMessage);
     if (props.currentMessage.location) {
       const latitude = props.currentMessage.location.latitude;
       const longitude = props.currentMessage.location.longitude;
@@ -380,42 +344,13 @@ class ChatScreen extends React.Component {
 
   // Custom message's view
   renderMessage(props) {
-    return <Message 
-    language={{from: this.state.fromLanguage, to: this.state.toLanguage}} 
-    {...props} />;
+    return <Message
+    {...props} />
   }
 
   renderChatFooter(props) {
     return (
       <View>
-        <View style={styles.footerselectlang}>
-          <Text style={styles.translatelabel}>Translate from: </Text>
-          <TouchableOpacity
-            style={styles.touchfrom}
-            onPress={() =>
-              this.setState({ selectFromPicker: true, selectToPicker: false })
-            }
-          >
-            <Text style={{ fontSize: 14 }}>
-              {LANGUAGES.filter(e => e.value == this.state.fromLanguage).map(
-                e => e.label
-              )}
-            </Text>
-          </TouchableOpacity>
-          <Text style={styles.to}>to: </Text>
-          <TouchableOpacity
-            style={styles.touchfrom}
-            onPress={() =>
-              this.setState({ selectFromPicker: false, selectToPicker: true })
-            }
-          >
-            <Text style={{ fontSize: 14 }}>
-              {LANGUAGES.filter(e => e.value == this.state.toLanguage).map(
-                e => e.label
-              )}
-            </Text>
-          </TouchableOpacity>
-        </View>
         <View style={styles.rawmessbox}>
           <View style={styles.boxbuttontranslate}>
             <Icon
@@ -427,7 +362,6 @@ class ChatScreen extends React.Component {
             <Icon name="location" type="entypo" onPress={this.shareLocation} />
           </View>
         </View>
-        {this.renderPicker()}
       </View>
     );
   }
