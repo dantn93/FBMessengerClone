@@ -38,9 +38,11 @@ class ChatScreen extends React.Component {
     toLanguage: "en",
     pendingImages: [],
     isUploadingImage: false,
-    sendFlag: false,
-    receiveFlag: false
+    
   };
+
+  receiveFlag = false;
+  localMess = true;
 
   constructor(props) {
     super(props);
@@ -101,11 +103,13 @@ class ChatScreen extends React.Component {
     const roomid = this.props.navigation.getParam("roomid");
     await this.promisedSetState({ id, roomid });
     //1. get messages from localstorage
-    const messages = await AsyncStorage.getItem(roomid.toString());
-    if(messages != null){
-      await this.promisedSetState({messages: JSON.parse(messages)});
+    const messages = JSON.parse(await AsyncStorage.getItem(roomid.toString()));
+    if(messages != null && messages.length != 0){
+      await this.promisedSetState({messages});
     }else{
-      //2. get message from chatkit
+      //2. get messages from chatkit
+      this.receiveFlag = true;
+      this.localMess = false;
     }
     this.listenRoomMessage(id, roomid);
   }
@@ -145,31 +149,36 @@ class ChatScreen extends React.Component {
     }
 
     //1. receive new message (dont have in local storage) => append to this.state.messages
-    var lastLocalMess = this.state.messages.slice(0)[0];
-    //turn on receiveFlag for appending next messages
-    var appendFlag = false;
-    if(lastLocalMess._id == incomingMessage._id){
-      this.setState({receiveFlag: true})
-    }
-    if(lastLocalMess._id != incomingMessage._id){
-      appendFlag = true;
-    }
-
-    if(this.state.receiveFlag && appendFlag){
-      this.setState(previousState => ({
-        messages: GiftedChat.append(previousState.messages, incomingMessage)
-      }));
-
-      //2. save into local storage
-      //2.1 just select NUMBER_OF_MESSAGES from this.state.messages
-      var lclMessages = this.state.messages.slice(0, NUMBER_OF_MESSAGES);
-      console.log(lclMessages);
-      //2.2 save into local storage
-      try{
-        AsyncStorage.setItem(this.state.roomid.toString(), JSON.stringify(lclMessages));
-      }catch(err){
-        console.log('Save messages into local storage: ', err.message);
+    if(this.localMess){
+      var lastLocalMess = this.state.messages.slice(0)[0];
+      //turn on receiveFlag for appending next messages
+      var appendFlag = false;
+      if(lastLocalMess._id == incomingMessage._id){
+        this.receiveFlag = true;
       }
+      if(lastLocalMess._id != incomingMessage._id){
+        appendFlag = true;
+      }
+      if(this.receiveFlag && appendFlag){
+        this.saveLocalMess(incomingMessage);
+      }
+    }else{
+      this.saveLocalMess(incomingMessage);
+    }
+  }
+
+  saveLocalMess(incomingMessage){
+    this.setState(previousState => ({
+      messages: GiftedChat.append(previousState.messages, incomingMessage)
+    }));
+    //2. save into local storage
+    //2.1 just select NUMBER_OF_MESSAGES from this.state.messages
+    var lclMessages = this.state.messages.slice(0, NUMBER_OF_MESSAGES);
+    //2.2 save into local storage
+    try{
+      AsyncStorage.setItem(this.state.roomid.toString(), JSON.stringify(lclMessages));
+    }catch(err){
+      console.log('Save messages into local storage: ', err.message);
     }
   }
 
@@ -178,8 +187,7 @@ class ChatScreen extends React.Component {
     const textMessage = {
       text: message.text,
       roomId: this.state.roomid
-    };
-    await this.promisedSetState({sendFlag: true})
+    }
     this.sendMessage(textMessage);
     try{
       await AsyncStorage.setItem(this.state.roomid.toString(), JSON.stringify(this.state.messages));
