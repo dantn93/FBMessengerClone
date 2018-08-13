@@ -35,8 +35,8 @@
     "dataSource": "db",
     "public": false
   },
-  "chat": {
-    "dataSource": "db",
+  "Chat": {
+    "dataSource": "mongoDS",
     "public": true
   }
 }

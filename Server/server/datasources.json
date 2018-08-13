@@ -8,5 +8,15 @@
     "name": "db",
     "user": "",
     "connector": "mongodb"
+  },
+  "mongoDS": {
+    "host": "localhost",
+    "port": 27017,
+    "url": "",
+    "database": "messages",
+    "password": "",
+    "name": "mongoDS",
+    "user": "",
+    "connector": "mongodb"
   }
 }

@@ -31,7 +31,6 @@ function filteruser(fn, id, name) {
         });
 }
 
-
 module.exports = function (Chat) {
     Chat.createuser = function (params, fn) {
         fn = fn || utils.createPromiseCallback();
@@ -51,6 +50,27 @@ module.exports = function (Chat) {
         });
         return fn.promise;
     }
+
+    Chat.addmessages = function (params, fn) {
+        fn = fn || utils.createPromiseCallback();
+        const { roomid, message } = params;
+        var messObj = JSON.parse(message);
+
+        this.find({where: {roomid}}, function(err, obj){
+            if(err != null){
+                //update
+                
+            }else{
+                //create
+                this.create({roomid, messages: [messObj]}, function(err, obj){
+                    fn(err, obj);
+                })
+            }
+        });
+        
+        return fn.promise;
+    }
+
 
     Chat.translate = function (params, fn) {
         fn = fn || utils.createPromiseCallback();
@@ -114,6 +134,27 @@ module.exports = function (Chat) {
             'translate',
             {
                 description: 'Create new user with chatkit',
+                accepts: [
+                    { arg: 'params', type: 'object', required: true, http: { source: 'body' } },
+                    {
+                        arg: 'include', type: ['string'], http: { source: 'query' },
+                        description: 'Related objects to include in the response. ' +
+                            'See the description of return value for more details.'
+                    },
+                ],
+                returns: {
+                    arg: 'data', type: 'object', root: true,
+                    description: ''
+
+                },
+                http: { verb: 'post' },
+            }
+        );
+
+        ChatModel.remoteMethod(
+            'addmessages',
+            {
+                description: 'Add and update messages',
                 accepts: [
                     { arg: 'params', type: 'object', required: true, http: { source: 'body' } },
                     {

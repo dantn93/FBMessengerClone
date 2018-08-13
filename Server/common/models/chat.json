@@ -1,13 +1,19 @@
 {
-  "name": "chat",
+  "name": "Chat",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "properties": {
-    "user": {
+    "roomid": {
       "type": "string",
+      "required": true
+    },
+    "messages": {
+      "type": [
+        "object"
+      ],
       "required": true
     }
   },
