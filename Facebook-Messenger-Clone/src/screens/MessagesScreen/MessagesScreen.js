@@ -35,7 +35,7 @@ class MessagesScreen extends Component {
     }
   }
 
-  retrieveRooms = async () => {
+  retrieveRooms = () => {
     // This will create a `tokenProvider` object. This object will be later used to make a Chatkit Manager instance.
     const tokenProvider = new Chatkit.TokenProvider({
       url: CHATKIT_TOKEN_PROVIDER_ENDPOINT
@@ -62,7 +62,7 @@ class MessagesScreen extends Component {
   onRetrieveRooms = async () => {
     await this.retrieveData();
     //get rooms on server and update it
-    await this.retrieveRooms();
+    this.retrieveRooms();
   }
 
   componentDidMount() {

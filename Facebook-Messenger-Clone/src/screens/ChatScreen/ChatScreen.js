@@ -23,7 +23,8 @@ import {
   CHATKIT_TOKEN_PROVIDER_ENDPOINT,
   CHATKIT_INSTANCE_LOCATOR,
   IMAGE_UPLOAD_URL,
-  IMAGE_API_KEY
+  IMAGE_API_KEY,
+  SERVER_URL
 } from "@config";
 import { NUMBER_OF_MESSAGES } from "@pusher/chatkit";
 
@@ -38,9 +39,9 @@ class ChatScreen extends React.Component {
     toLanguage: "en",
     pendingImages: [],
     isUploadingImage: false,
-    
   };
 
+  sendFlag = false;
   receiveFlag = false;
   localMess = true;
 
@@ -114,6 +115,24 @@ class ChatScreen extends React.Component {
     this.listenRoomMessage(id, roomid);
   }
 
+  //send message to server
+  sendMessageToServer(textMessage){
+    try{
+      axios.post(SERVER_URL + 'chats/addmessages', {
+        roomid: this.state.roomid,
+        message: JSON.stringify(textMessage)
+      })
+      .then(res => {
+        
+      })
+      .catch(err => {
+        console.log('Post request to server: ', err.message);
+      })
+    }catch(err){
+      console.log('Send message to server: ', err.message);
+    }
+  }
+
   // Handle message sent from server
   onReceive(data) {
     const { id, senderId, text, createdAt } = data;
@@ -148,7 +167,7 @@ class ChatScreen extends React.Component {
       incomingMessage.text = text;
     }
 
-    //1. receive new message (dont have in local storage) => append to this.state.messages
+    //func 1. receive new message (dont have in local storage) => append to this.state.messages
     if(this.localMess){
       var lastLocalMess = this.state.messages.slice(0)[0];
       //turn on receiveFlag for appending next messages
@@ -164,6 +183,12 @@ class ChatScreen extends React.Component {
       }
     }else{
       this.saveLocalMess(incomingMessage);
+    }
+
+    // func 2. send message to server
+    if(this.sendFlag){
+      this.sendMessageToServer(incomingMessage);
+      this.sendFlag = false;
     }
   }
 
@@ -199,6 +224,7 @@ class ChatScreen extends React.Component {
   // Send image and location message
   sendMessage(message) {
     this.currentUser.sendMessage(message);
+    this.sendFlag = true;
   }
 
   // Create and send image message

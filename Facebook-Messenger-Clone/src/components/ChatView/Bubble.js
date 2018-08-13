@@ -92,7 +92,7 @@ export default class Bubble extends React.Component {
     console.log(this.state.languageLocale);
     this.setState({ translateAction: "Translating..." }, () => {
       axios
-        .post(url + "chats/translate", {
+        .post(SERVER_URL + "chats/translate", {
           rawMessage: text,
           fromLanguage: '',
           toLanguage: this.state.languageLocale
