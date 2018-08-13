@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { View, Text, AsyncStorage, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import Chatkit from "@pusher/chatkit";
-import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR } from '@config/chatConfig';
+import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR, NUMBER_OF_ROOMS } from '@config';
 import axios from 'axios';
 
 
@@ -12,6 +12,13 @@ class MessagesScreen extends Component {
     id: '',
     rooms: []
   }
+  
+  id = null;
+  name = null;
+
+  componentWillUnmount(){
+    AsyncStorage.setItem('rooms', JSON.stringify(this.state.rooms));
+  }
 
   //get username and avatar in AsyncStorage
   retrieveData = async () => {
@@ -19,15 +26,16 @@ class MessagesScreen extends Component {
       const id = await AsyncStorage.getItem('id');
       const name = await AsyncStorage.getItem('name');
       if (id != null && name != null) {
-        // We have data!!
-        this.setState({ name, id });
+        this.id = id;
+        this.name = name;
       }
+      
     } catch (error) {
       console.log(error.message);
     }
   }
 
-  retrieveRooms() {
+  retrieveRooms = async () => {
     // This will create a `tokenProvider` object. This object will be later used to make a Chatkit Manager instance.
     const tokenProvider = new Chatkit.TokenProvider({
       url: CHATKIT_TOKEN_PROVIDER_ENDPOINT
@@ -37,25 +45,23 @@ class MessagesScreen extends Component {
     // For the purpose of this example we will use single room-user pair.
     const chatManager = new Chatkit.ChatManager({
       instanceLocator: CHATKIT_INSTANCE_LOCATOR,
-      userId: this.state.id,
+      userId: this.id,
       tokenProvider: tokenProvider
     })
 
     chatManager.connect()
       .then(currentUser => {
         const rooms = currentUser.rooms;
-        if (rooms.length != 0){
-          this.setState({ rooms });
-        }
+        this.setState({ rooms });
       })
       .catch(err => {
-        console.log('Error on connection');
+        console.log('Error: ', err.message);
       })
   }
 
   onRetrieveRooms = async () => {
     await this.retrieveData();
-    // console.log(this.state);
+    //get rooms on server and update it
     await this.retrieveRooms();
   }
 
@@ -64,7 +70,7 @@ class MessagesScreen extends Component {
   }
 
   onGoToChatScreen(room) {
-    this.props.dispatch({ type: "GOTO_CHAT", data: { "id": this.state.id, "roomid": room.id } });
+    this.props.dispatch({ type: "GOTO_CHAT", data: { "id": this.id, "roomid": room.id } });
   }
 
   listItem(room) {

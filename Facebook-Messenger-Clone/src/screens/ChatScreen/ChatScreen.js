@@ -7,7 +7,8 @@ import {
   Picker,
   Text,
   Platform,
-  Linking
+  Linking,
+  AsyncStorage
 } from "react-native";
 import { connect } from "react-redux";
 import { GiftedChat } from "react-native-gifted-chat";
@@ -23,9 +24,8 @@ import {
   CHATKIT_INSTANCE_LOCATOR,
   IMAGE_UPLOAD_URL,
   IMAGE_API_KEY
-} from "@config/chatConfig";
-import { LANGUAGES } from "@config/languageArr";
-import { url } from '@config/loopBackConfig';
+} from "@config";
+import { NUMBER_OF_MESSAGES } from "@pusher/chatkit";
 
 class ChatScreen extends React.Component {
   state = {
@@ -36,9 +36,10 @@ class ChatScreen extends React.Component {
     selectToPicker: false,
     fromLanguage: "vi",
     toLanguage: "en",
-    composingText: "",
     pendingImages: [],
-    isUploadingImage: false
+    isUploadingImage: false,
+    sendFlag: false,
+    receiveFlag: false
   };
 
   constructor(props) {
@@ -53,49 +54,65 @@ class ChatScreen extends React.Component {
     this.onUploadImageFinish = this.onUploadImageFinish.bind(this);
   }
 
-  componentDidMount() {
-    const id = this.props.navigation.getParam("id");
-    const roomid = this.props.navigation.getParam("roomid");
-    this.setState({ id, roomid });
+  // This will create a `tokenProvider` object. This object will be later used to make a Chatkit Manager instance.
+  tokenProvider = new Chatkit.TokenProvider({
+    url: CHATKIT_TOKEN_PROVIDER_ENDPOINT
+  });
 
-    // This will create a `tokenProvider` object. This object will be later used to make a Chatkit Manager instance.
-    const tokenProvider = new Chatkit.TokenProvider({
-      url: CHATKIT_TOKEN_PROVIDER_ENDPOINT
-    });
-
+  listenRoomMessage(id, roomid){
     // This will instantiate a `chatManager` object. This object can be used to subscribe to any number of rooms and users and corresponding messages.
     // For the purpose of this example we will use single room-user pair.
     const chatManager = new Chatkit.ChatManager({
       instanceLocator: CHATKIT_INSTANCE_LOCATOR,
       userId: id,
-      tokenProvider: tokenProvider
+      tokenProvider: this.tokenProvider
     });
-
     // In order to subscribe to the messages this user is receiving in this room, we need to `connect()` the `chatManager` and have a hook on `onNewMessage`. There are several other hooks that you can use for various scenarios. A comprehensive list can be found [here](https://docs.pusher.com/chatkit/reference/javascript#connection-hooks).
     chatManager
-      .connect({
-        onAddedToRoom: room => {
-          console.log(`Added to room ${room.id}`);
+    .connect({
+      onAddedToRoom: room => {
+        console.log(`Added to room ${room.id}`);
+      }
+    })
+    .then(currentUser => {
+      this.currentUser = currentUser;
+      this.currentUser.subscribeToRoom({
+        roomId: roomid,
+        hooks: {
+          onNewMessage: this.onReceive.bind(this)
         }
-      })
-      .then(currentUser => {
-        this.currentUser = currentUser;
-        this.currentUser.subscribeToRoom({
-          roomId: roomid,
-          hooks: {
-            onNewMessage: this.onReceive.bind(this)
-          }
-        });
-      })
-      .catch(err => {
-        console.log("Error on connection", err);
       });
+    })
+    .catch(err => {
+      console.log("Error on connection", err);
+    });
+  }
+
+  promisedSetState = (newState) => {
+    return new Promise((resolve) => {
+        this.setState(newState, () => {
+            resolve();
+        });
+    });
+  }
+
+  async componentDidMount() {
+    const id = this.props.navigation.getParam("id");
+    const roomid = this.props.navigation.getParam("roomid");
+    await this.promisedSetState({ id, roomid });
+    //1. get messages from localstorage
+    const messages = await AsyncStorage.getItem(roomid.toString());
+    if(messages != null){
+      await this.promisedSetState({messages: JSON.parse(messages)});
+    }else{
+      //2. get message from chatkit
+    }
+    this.listenRoomMessage(id, roomid);
   }
 
   // Handle message sent from server
   onReceive(data) {
-    const { id, senderId, text, createdAt, attachment } = data;
-
+    const { id, senderId, text, createdAt } = data;
     // Initialize base message
     const incomingMessage = {
       _id: id,
@@ -127,21 +144,48 @@ class ChatScreen extends React.Component {
       incomingMessage.text = text;
     }
 
-    this.setState(previousState => ({
-      messages: GiftedChat.append(previousState.messages, incomingMessage)
-    }));
+    //1. receive new message (dont have in local storage) => append to this.state.messages
+    var lastLocalMess = this.state.messages.slice(0)[0];
+    //turn on receiveFlag for appending next messages
+    var appendFlag = false;
+    if(lastLocalMess._id == incomingMessage._id){
+      this.setState({receiveFlag: true})
+    }
+    if(lastLocalMess._id != incomingMessage._id){
+      appendFlag = true;
+    }
+
+    if(this.state.receiveFlag && appendFlag){
+      this.setState(previousState => ({
+        messages: GiftedChat.append(previousState.messages, incomingMessage)
+      }));
+
+      //2. save into local storage
+      //2.1 just select NUMBER_OF_MESSAGES from this.state.messages
+      var lclMessages = this.state.messages.slice(0, NUMBER_OF_MESSAGES);
+      console.log(lclMessages);
+      //2.2 save into local storage
+      try{
+        AsyncStorage.setItem(this.state.roomid.toString(), JSON.stringify(lclMessages));
+      }catch(err){
+        console.log('Save messages into local storage: ', err.message);
+      }
+    }
   }
 
   // Send simple text message
-  onSendText([message]) {
+  onSendText = async ([message]) => {
     const textMessage = {
       text: message.text,
       roomId: this.state.roomid
     };
-    this.currentUser.sendMessage(textMessage);
-    this.setState({
-      composingText: ""
-    });
+    await this.promisedSetState({sendFlag: true})
+    this.sendMessage(textMessage);
+    try{
+      await AsyncStorage.setItem(this.state.roomid.toString(), JSON.stringify(this.state.messages));
+    }catch(err){
+      console.log('Save local message: ', err.message);
+    }
   }
 
   // Send image and location message
@@ -212,7 +256,7 @@ class ChatScreen extends React.Component {
   }
 
   // Handle back button
-  onGoBack() {
+  onGoBack = async () => {
     this.props.dispatch({ type: "GO_BACK" });
   }
 
@@ -366,18 +410,19 @@ class ChatScreen extends React.Component {
     );
   }
 
+  // Save message to Asynstorage
+  storeHistoryData(){
+
+  }
+
   render() {
     return (
       <View style={styles.container}>
         <GiftedChat
-          text={this.state.composingText}
           messages={this.state.messages}
           onSend={messages => this.onSendText(messages)}
           user={{
             _id: this.state.id
-          }}
-          onInputTextChanged={text => {
-            this.setState({ composingText: text });
           }}
           renderChatFooter={this.renderChatFooter.bind(this)}
           renderCustomView={this.renderCustomView}

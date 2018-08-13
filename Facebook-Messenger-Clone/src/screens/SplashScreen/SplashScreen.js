@@ -2,18 +2,19 @@ import React, { Component } from 'react';
 import { View, TextInput, AsyncStorage, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Button } from 'react-native-paper';
 import { connect } from 'react-redux';
-import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR } from '@config/chatConfig';
+import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR } from '@config';
 import axios from 'axios';
 import RNAccountKit, { LoginButton, Color, StatusBarStyle } from 'react-native-facebook-account-kit';
-import { url } from '@config/loopBackConfig';
-console.log(url);
+import { SERVER_URL, ACCOUNT_KIT } from '@config';
 class SplashScreen extends Component {
     state = {
         authToken: null,
         loggedAccount: null,
     }
+    
     componentWillMount() {
         this.configureAccountKit()
+
         RNAccountKit.getCurrentAccessToken()
             .then(token => {
                 if (token) {
@@ -33,18 +34,22 @@ class SplashScreen extends Component {
             .catch(e => console.log('Failed to get current access token', e))
     }
 
+    //initial account kit configuration
     configureAccountKit() {
+        const {INITIAL_EMAIL, INITIAL_PHONE_COUNTRY, INITIAL_PHONE_NUMBER} = ACCOUNT_KIT;
         RNAccountKit.configure({
-            initialEmail: 'mocnhantrang@gmail.com',
-            initialPhoneCountryPrefix: '+84',
-            initialPhoneNumber: '1292849917',
+            initialEmail: INITIAL_EMAIL,
+            initialPhoneCountryPrefix: INITIAL_PHONE_COUNTRY,
+            initialPhoneNumber: INITIAL_PHONE_NUMBER,
         })
     }
 
+    //phone number has a country code
     getPhoneNumber(phoneNumber){
         return phoneNumber.countryCode + '-' + phoneNumber.number
     }
 
+    //store data into asyncstorage
     storeData = async (user) => {
         const name = user.phoneNumber ? this.getPhoneNumber(user.phoneNumber) : user.email;
         try {
@@ -61,10 +66,11 @@ class SplashScreen extends Component {
         navigation.navigate('MainScreen');
     }
 
+    //send request to create user
     postCreateUser = async (user) => {
         const name = user.phoneNumber ? this.getPhoneNumber(user.phoneNumber) : user.email
         var flag = false;
-        await axios.post(url + 'chats/createuser', {
+        await axios.post(SERVER_URL + 'chats/createuser', {
             "name": name, "id": user.id
         })
         .then(function (response) {

@@ -4,3 +4,11 @@ export const CHATKIT_INSTANCE_LOCATOR = "v1:us1:ead852c2-5623-497b-be2e-42b835b2
 
 export const IMAGE_UPLOAD_URL = "https://api.imgur.com/3/image";
 export const IMAGE_API_KEY="d8f415026784805";
+export const NUMBER_OF_MESSAGES = 200;
+export const SERVER_URL = 'http://localhost:5000/api/';
+
+export const ACCOUNT_KIT={
+    INITIAL_EMAIL: 'mocnhantrang@gmail.com',
+    INITIAL_PHONE_COUNTRY: '+84',
+    INITIAL_PHONE_NUMBER: '1292849917'
+}

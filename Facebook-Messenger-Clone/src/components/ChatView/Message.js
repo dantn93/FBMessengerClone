@@ -63,13 +63,10 @@ export default class Message extends React.Component {
   }
 
   render() {
-    
     const sameUser = isSameUser(
       this.props.currentMessage,
       this.props.nextMessage
     );
-    
-    
     return (
       <View>
         {this.renderDay()}

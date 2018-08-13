@@ -3,9 +3,9 @@ import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, AsyncStorage
 import { BottomScreenStyles } from '@config/styles';
 import { connect } from 'react-redux';
 import Chatkit from "@pusher/chatkit";
-import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR } from '@config/chatConfig';
+import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR } from '@config';
 import axios from 'axios';
-import { url } from '@config/loopBackConfig';
+import { SERVER_URL } from '@config';
 
 // This will create a `tokenProvider` object. This object will be later used to make a Chatkit Manager instance.
 const tokenProvider = new Chatkit.TokenProvider({
@@ -35,7 +35,7 @@ class ActiveScreen extends Component {
   }
 
   getListUsers(){ //retrieve people in chatkit server
-    axios.post(url + 'chats/getlistusers', {
+    axios.post(SERVER_URL + 'chats/getlistusers', {
     })
     .then(res => {
       if(res.data.success){
@@ -74,7 +74,6 @@ class ActiveScreen extends Component {
         private: true,
         addUserIds: [this.state.id, item.id]
       }).then(room => {
-        console.log('ROOM ', room);
         this.goToChatScreen(room);
       })
         .catch(err => {
@@ -93,23 +92,18 @@ class ActiveScreen extends Component {
     });
 
     const roomname = item.id + '-' + this.state.id;
-    console.log(roomname);
     chatManager.connect()
       .then(currentUser => {
-        console.log(currentUser.rooms);
         var rooms = currentUser.rooms.filter(e => e.name == roomname);
         if (rooms.length != 0) { //roomname exist
           this.goToChatScreen(rooms[0]);
         } else {
           // check inver_roomname
-          console.log('INVERT ROOM NAME');
           const invert_roomname = this.state.id + '-' + item.id;
           rooms = currentUser.rooms.filter(e => e.name == invert_roomname);
-          console.log(rooms);
           if (rooms.length != 0) {
             this.goToChatScreen(rooms[0]);
           } else {
-            console.log('Create room: ', roomname);
             this.createRoom(item, roomname);
           }
         }

@@ -21,7 +21,7 @@ import {
   utils
 } from "react-native-gifted-chat";
 import Color from "./Color";
-import { url } from '@config/loopBackConfig';
+import { SERVER_URL } from '@config';
 
 const { isSameUser, isSameDay, warnDeprecated } = utils;
 
@@ -58,7 +58,6 @@ export default class Bubble extends React.Component {
     
     // "en_US" -> "en", "es_CL" -> "es", etc
     let languageLocale = langRegionLocale.substring(0, 2); // get first two characters
-    console.log(languageLocale);
     this.setState({languageLocale});
   }
 
@@ -90,6 +89,7 @@ export default class Bubble extends React.Component {
   // Translate text
   onTranslate = text => {
     // Update translate action text
+    console.log(this.state.languageLocale);
     this.setState({ translateAction: "Translating..." }, () => {
       axios
         .post(url + "chats/translate", {
