@@ -85,7 +85,7 @@ class MessagesScreen extends Component {
 
   render() {
     return (
-      <View style={{ flex: 1 }}>
+      <View testID="MessagesScreen" style={{ flex: 1 }}>
         <FlatList
           data={this.state.rooms}
           renderItem={(item) => this.listItem(item.item)}

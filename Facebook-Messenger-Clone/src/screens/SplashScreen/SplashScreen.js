@@ -6,13 +6,15 @@ import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR }
 import axios from 'axios';
 import RNAccountKit, { LoginButton, Color, StatusBarStyle } from 'react-native-facebook-account-kit';
 import { SERVER_URL, ACCOUNT_KIT } from '@config';
-class SplashScreen extends Component {
+import Config from 'react-native-config';
+
+class SplashScreen extends Component {    
     state = {
         authToken: null,
-        loggedAccount: null,
+        loggedAccount: null
     }
-    
-    componentWillMount() {
+
+    componentDidMount() {
         this.configureAccountKit()
 
         RNAccountKit.getCurrentAccessToken()
@@ -114,6 +116,7 @@ class SplashScreen extends Component {
     onEmailLoginPressed() {
         RNAccountKit.loginWithEmail()
             .then(token => {
+                console.log(token);
                 this.onLogin(token)
             })
             .catch(e => this.onLoginError(e))
@@ -134,7 +137,7 @@ class SplashScreen extends Component {
         const { id, email, phoneNumber } = this.state.loggedAccount
 
         return (
-            <View>
+            <View >
                 <TouchableOpacity style={styles.button} onPress={() => this.onLogoutPressed()}>
                     <Text style={styles.buttonText}>Logout</Text>
                 </TouchableOpacity>
@@ -151,7 +154,7 @@ class SplashScreen extends Component {
 
     renderLogin() {
         return (
-            <View>
+            <View >
                 <LoginButton
                     style={styles.button}
                     type="phone"
@@ -161,7 +164,7 @@ class SplashScreen extends Component {
                     <Text style={styles.buttonText}>SMS</Text>
                 </LoginButton>
 
-                <TouchableOpacity style={styles.button} onPress={() => this.onEmailLoginPressed()}>
+                <TouchableOpacity testID="EmailTap" style={styles.button} onPress={() => this.onEmailLoginPressed()}>
                     <Text style={styles.buttonText}>Email</Text>
                 </TouchableOpacity>
             </View>
@@ -170,11 +173,11 @@ class SplashScreen extends Component {
 
     renderMain() {
         return (
-            <View>
-                <TouchableOpacity onPress={() => this.goToMainScreen()}>
+            <View testID="Splash">
+                <TouchableOpacity testID="GoToMain" onPress={() => this.goToMainScreen()}>
                     <Text style={{ backgroundColor: 'red' }}>Go to Main Screen</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => this.onLogoutPressed()} style={{ marginTop: 30 }}>
+                <TouchableOpacity testID="LogOut" onPress={() => this.onLogoutPressed()} style={{ marginTop: 30 }}>
                     <Text style={{ backgroundColor: 'blue' }}>Log out</Text>
                 </TouchableOpacity>
             </View>
@@ -183,7 +186,7 @@ class SplashScreen extends Component {
 
     render() {
         return (
-            <View style={styles.container}>{this.state.loggedAccount ? this.renderMain() : this.renderLogin()}</View>
+            <View testID="LoginView"  style={styles.container}>{this.state.loggedAccount ? this.renderMain() : this.renderLogin()}</View>
         )
     }
 }
