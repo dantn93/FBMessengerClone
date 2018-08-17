@@ -10,7 +10,9 @@ describe('Example', () => {
   it('should show accoutkit login', async () => {
     await expect(element(by.id('LoginView'))).toBeVisible();
     // await element(by.id('EmailTap')).tap();
-    await expect(element(by.id('Splash'))).toBeVisible();
+    // await expect(element(by.id('MessagesScreen'))).toBeVisible();
+
+
   });
 
   // it('should show hello screen after tap', async () => {

@@ -137,6 +137,7 @@ android {
 }
 
 dependencies {
+    compile project(':react-native-config')
     compile project(':react-native-maps')
     compile project(':react-native-facebook-account-kit')
     compile project(':react-native-image-picker')

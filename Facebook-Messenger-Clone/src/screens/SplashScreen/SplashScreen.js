@@ -6,7 +6,6 @@ import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR }
 import axios from 'axios';
 import RNAccountKit, { LoginButton, Color, StatusBarStyle } from 'react-native-facebook-account-kit';
 import { SERVER_URL, ACCOUNT_KIT } from '@config';
-import Config from 'react-native-config';
 
 class SplashScreen extends Component {    
     state = {
