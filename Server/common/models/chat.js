@@ -56,17 +56,23 @@ module.exports = function (Chat) {
         const { roomid, message } = params;
         var messObj = JSON.parse(message);
 
-        this.find({where: {roomid}}, function(err, obj){
-            if(err != null){
-                //update
-                
-            }else{
-                //create
-                this.create({roomid, messages: [messObj]}, function(err, obj){
-                    fn(err, obj);
-                })
-            }
-        });
+        this.create({roomid, messages: [messObj]}, function(err, obj){
+            fn(err, obj);
+        })
+
+        // this.find({where: {roomid}}, function(err, obj){
+        //     if(err != null){
+        //         //update
+        //         obj.updateAttributes({messages: 'value'}, function(err, obj){
+
+        //         })
+        //     }else{
+        //         //create
+        //         this.create({roomid, messages: [messObj]}, function(err, obj){
+        //             fn(err, obj);
+        //         })
+        //     }
+        // });
         
         return fn.promise;
     }

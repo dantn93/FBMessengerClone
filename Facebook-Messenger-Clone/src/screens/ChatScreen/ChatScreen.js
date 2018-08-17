@@ -79,6 +79,7 @@ class ChatScreen extends React.Component {
     })
     .then(currentUser => {
       this.currentUser = currentUser;
+      console.log(this.currentUser);
       this.currentUser.subscribeToRoom({
         roomId: roomid,
         hooks: {
@@ -186,7 +187,7 @@ class ChatScreen extends React.Component {
     }
 
     // func 2. send message to server
-    if(this.sendFlag){
+    if(this.sendFlag && this.state.id == incomingMessage.user._id){
       this.sendMessageToServer(incomingMessage);
       this.sendFlag = false;
     }

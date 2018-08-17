@@ -152,7 +152,7 @@ class SplashScreen extends Component {
     renderLogin() {
         return (
             <View>
-                <LoginButton
+                <LoginButton testID='LoginButton'
                     style={styles.button}
                     type="phone"
                     onLogin={token => this.onLogin(token)}
@@ -219,9 +219,4 @@ const styles = StyleSheet.create({
     },
 })
 
-
-const mapStateToProps = state => ({
-    nav: state.nav,
-});
-
-export default connect(mapStateToProps)(SplashScreen)
+export default connect()(SplashScreen)

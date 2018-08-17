@@ -23,12 +23,12 @@ const instructions = Platform.select({
     'Shake or press menu button for dev menu',
 });
 
-const store = createStore(
+export const store = createStore(
   AppReducer,
   applyMiddleware(logger)
 )
 
-export default class App extends Component {
+export class App extends Component {
   render() {
     return (
       <Provider store={store}>
