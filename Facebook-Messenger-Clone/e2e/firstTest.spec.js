@@ -9,8 +9,9 @@ describe('Example', () => {
 
   it('should show accoutkit login', async () => {
     await expect(element(by.id('LoginView'))).toBeVisible();
-    // await element(by.id('EmailTap')).tap();
-    // await expect(element(by.id('MessagesScreen'))).toBeVisible();
+    await element(by.id('EmailTap')).tap();
+    await element(by.id('GoToMain')).tap();
+    await expect(element(by.id('MessagesScreen'))).toBeVisible();
 
 
   });

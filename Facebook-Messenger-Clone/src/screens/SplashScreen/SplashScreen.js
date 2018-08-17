@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR } from '@config';
 import axios from 'axios';
 import RNAccountKit, { LoginButton, Color, StatusBarStyle } from 'react-native-facebook-account-kit';
-import { SERVER_URL, ACCOUNT_KIT } from '@config';
+import { SERVER_URL, ACCOUNT_KIT, MODE, LOGIN_TOKEN, TEST_ACCOUNT } from '@config';
 
 class SplashScreen extends Component {    
     state = {
@@ -112,7 +112,19 @@ class SplashScreen extends Component {
         console.log('Failed to login', e)
     }
 
+    testGoToMain = async () => {
+        await this.postCreateUser(TEST_ACCOUNT);
+        this.setState({
+            authToken: LOGIN_TOKEN,
+            loggedAccount: TEST_ACCOUNT,
+        });
+    }
+
     onEmailLoginPressed() {
+        if(MODE == 'TEST'){
+            this.testGoToMain();
+            return
+        }
         RNAccountKit.loginWithEmail()
             .then(token => {
                 console.log(token);

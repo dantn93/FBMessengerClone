@@ -8,8 +8,6 @@ import axios from 'axios';
 
 class MessagesScreen extends Component {
   state = {
-    name: '',
-    id: '',
     rooms: []
   }
   
@@ -75,7 +73,7 @@ class MessagesScreen extends Component {
 
   listItem(room) {
     return (
-      <View style={styles.viewItem}>
+      <View  style={styles.viewItem}>
         <TouchableOpacity onPress={() => this.onGoToChatScreen(room)} style={styles.touchItem}>
           <Text>{room.id}</Text>
         </TouchableOpacity>
