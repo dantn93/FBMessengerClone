@@ -28,10 +28,23 @@
   "devDependencies": {
     "babel-jest": "23.4.0",
     "babel-preset-react-native": "^5",
+    "detox": "^8.1.6",
     "jest": "23.4.1",
+    "mocha": "^5.2.0",
     "react-test-renderer": "16.4.1"
   },
   "jest": {
     "preset": "react-native"
+  },
+  "detox": {
+    "configurations": {
+      "ios.sim.debug": {
+        "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/fbmessclone.app",
+        "build": "xcodebuild -workspace ios/fbmessclone.xcworkspace -scheme fbmessclone -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build",
+        "type": "ios.simulator",
+        "name": "iPhone 7"
+      }
+    },
+    "test-runner": "mocha"
   }
 }
