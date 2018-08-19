@@ -16,7 +16,10 @@ export const ModalStack = createStackNavigator(
         },
         CameraScreen: {
             screen: CameraScreen,
-            navigationOptions: {gesturesEnable: false}
+            navigationOptions: {
+                gesturesEnable: false,
+                header: null
+            }
         }
     },
     {

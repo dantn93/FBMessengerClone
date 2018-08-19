@@ -6,7 +6,9 @@ export default class PopularScreen extends Component {
     state = {  }
     render() {
         return (
-            <View style={BottomScreenStyles.container}>
+            <View style={BottomScreenStyles.container}
+                testID="PopularScreen"
+            >
                 <Text>Popular Screen</Text>
             </View>
         );

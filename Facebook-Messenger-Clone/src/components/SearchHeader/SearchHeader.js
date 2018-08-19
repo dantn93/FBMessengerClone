@@ -84,7 +84,7 @@ export class SearchHeader extends Component {
                     </Toolbar>
                 ) : (
                     <Toolbar style={styles.toolbar}>
-                        <ToolbarAction icon="search" onPress={this.onPress} />
+                        <ToolbarAction testID="SearchButton" icon="search" onPress={this.onPress} />
                         <TouchableOpacity
                             style={styles.btn}
                             onPress={this.onPress}

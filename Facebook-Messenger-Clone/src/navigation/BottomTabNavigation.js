@@ -33,14 +33,18 @@ export const BottomTabNavigation = createBottomTabNavigator(
         HomeScreen: {
             screen: HomeTabNavigation,
             navigationOptions: {
-                header: null, tabBarIcon: HomeTabIcon
+                header: null,
+                tabBarIcon: HomeTabIcon,
+                tabBarTestID: 'HomeTabIcon'
             }
         },
 
         PeopleScreen: {
             screen: PeopleScreen,
             navigationOptions: {
-                header: null, tabBarIcon: PeopleTabIcon
+                header: null,
+                tabBarIcon: PeopleTabIcon,
+                tabBarTestID: 'PeopleTabIcon'
             }
         },
 
@@ -49,6 +53,7 @@ export const BottomTabNavigation = createBottomTabNavigator(
             navigationOptions: ({navigation}) => ({
                 header: null,
                 tabBarIcon: CameraTabIcon,
+                tabBarTestID: 'CameraTabIcon',
                 tabBarOnPress: ({navigation}) => {
                     navigation.navigate('CameraScreen')
                 }
@@ -58,14 +63,18 @@ export const BottomTabNavigation = createBottomTabNavigator(
         GamesScreen: {
             screen: GamesScreen,
             navigationOptions: {
-                header: null, tabBarIcon: GamesTabIcon
+                header: null, 
+                tabBarIcon: GamesTabIcon,
+                tabBarTestID: 'GamesTabIcon'
             }
         },
 
         PopularScreen: {
             screen: PopularScreen,
             navigationOptions: {
-                header: null, tabBarIcon: PopularTabIcon
+                header: null,
+                tabBarIcon: PopularTabIcon,
+                tabBarTestID: 'PopularTabIcon'
             }
         }
 

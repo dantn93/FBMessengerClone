@@ -10,7 +10,9 @@ export default class PeopleScreen extends Component {
    
     render() {
         return (
-            <View style={BottomScreenStyles.container}>
+            <View style={BottomScreenStyles.container}
+                testID="PeopleScreen"
+            >
                 <Text>People Screen</Text>
             </View>
         );
