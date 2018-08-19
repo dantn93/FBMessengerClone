@@ -14,5 +14,5 @@ export const ACCOUNT_KIT={
 }
 
 export const MODE="TEST";
-export const LOGIN_TOKEN={appId: "244889879466959", accountId: "1945858485472454", refreshIntervalSeconds: 2592000, token: "EMAWdRLPmZAIaHMhX4oQAX1nDxqWTGVvUVfxa741OqLxdMBRGl…m0knOo4fTbTUCHSi1aHAMEkBrxGB5OE8piaTOSgq1RNXAZDZD", lastRefresh: 1534498140823.039}
+export const TEST_TOKEN={appId: "244889879466959", accountId: "1945858485472454", refreshIntervalSeconds: 2592000, token: "EMAWdRLPmZAIaHMhX4oQAX1nDxqWTGVvUVfxa741OqLxdMBRGl…m0knOo4fTbTUCHSi1aHAMEkBrxGB5OE8piaTOSgq1RNXAZDZD", lastRefresh: 1534498140823.039}
 export const TEST_ACCOUNT={id: "1945858485472454", email: "mocnhantrang@gmail.com"}

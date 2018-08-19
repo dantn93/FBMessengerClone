@@ -5,7 +5,7 @@ export default class CallsScreen extends Component {
     state = {  }
     render() {
         return (
-            <View>
+            <View testID="CallsScreen">
                 <Text>Calls Screen</Text>
             </View>
         );

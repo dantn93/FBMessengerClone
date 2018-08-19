@@ -26,7 +26,7 @@ class ActiveScreen extends Component {
       const id = await AsyncStorage.getItem('id');
       if (name != null && id != null) {
         // We have data!!
-        this.setState({ name, id });
+        await this.setState({ name, id });
       }
     } catch (error) {
       // Error retrieving data
@@ -39,7 +39,14 @@ class ActiveScreen extends Component {
     })
     .then(res => {
       if(res.data.success){
-        const friends = res.data.data.filter(user => user.id != this.state.id);
+        var friends = res.data.data.filter(user => user.id != this.state.id);
+        var count = 0;
+        friends = friends.map(element => {
+          var obj = {ActiveIndex: count, ...element};
+          count ++;
+          return obj;
+        });
+        console.log(friends);
         this.setState({friends});
       }
     })
@@ -83,6 +90,7 @@ class ActiveScreen extends Component {
   }
 
   retrieveRooms(item) {
+    console.log(item);
     // This will instantiate a `chatManager` object. This object can be used to subscribe to any number of rooms and users and corresponding messages.
     // For the purpose of this example we will use single room-user pair.
     const chatManager = new Chatkit.ChatManager({
@@ -102,6 +110,7 @@ class ActiveScreen extends Component {
           const invert_roomname = this.state.id + '-' + item.id;
           rooms = currentUser.rooms.filter(e => e.name == invert_roomname);
           if (rooms.length != 0) {
+            console.log('1111111');
             this.goToChatScreen(rooms[0]);
           } else {
             this.createRoom(item, roomname);
@@ -115,7 +124,7 @@ class ActiveScreen extends Component {
 
   onChatOneToOne(item) {
     //check the room existing
-    this.retrieveRooms(item.item);
+    this.retrieveRooms(item);
   }
 
   goToChatScreen(room) {
@@ -124,9 +133,12 @@ class ActiveScreen extends Component {
 
   listItem(item) {
     return (
-      <View style={styles.viewItem}>
-        <TouchableOpacity onPress={() => this.onChatOneToOne(item)} style={styles.touchItem}>
-          <Text>{item.item.name}</Text>
+      <View 
+        style={styles.viewItem}
+        testID={`ActiveIndex${item.ActiveIndex}`}
+      >
+        <TouchableOpacity testID="listItem" onPress={() => this.onChatOneToOne(item)} style={styles.touchItem}>
+          <Text>{item.name}</Text>
         </TouchableOpacity>
       </View>
     )
@@ -134,12 +146,15 @@ class ActiveScreen extends Component {
 
   render() {
     return (
-      <View style={BottomScreenStyles.container}>
+      <View style={BottomScreenStyles.container}
+        testID="ActiveScreen"
+      >
         {this.state.friends != [] ?
           <FlatList
             data={this.state.friends}
-            renderItem={(item) => this.listItem(item)}
+            renderItem={(item) => this.listItem(item.item)}
             keyExtractor={(item, index) => index.toString()}
+            testID="ActiveFlatList"
           />
           :
           null

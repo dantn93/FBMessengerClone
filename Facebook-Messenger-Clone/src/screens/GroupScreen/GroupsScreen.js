@@ -5,7 +5,7 @@ export default class GroupsScreen extends Component {
     state = {  }
     render() {
         return (
-            <View>
+            <View testID="GroupsScreen">
                 <Text>Groups Screen</Text>
             </View>
         );

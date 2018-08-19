@@ -451,7 +451,7 @@ class ChatScreen extends React.Component {
 
   render() {
     return (
-      <View style={styles.container}>
+      <View  testID="ChatScreen" style={styles.container}>
         <GiftedChat
           messages={this.state.messages}
           onSend={messages => this.onSendText(messages)}
@@ -466,6 +466,7 @@ class ChatScreen extends React.Component {
         <TouchableOpacity
           style={styles.touchBack}
           onPress={() => this.onGoBack()}
+          testID="GoBack"
         >
           <Image
             source={require("@assets/images/icons8-back-filled-100.png")}

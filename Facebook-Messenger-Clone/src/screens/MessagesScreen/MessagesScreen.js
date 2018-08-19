@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Text, AsyncStorage, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, AsyncStorage, FlatList, StyleSheet, TouchableOpacity, SectionList } from 'react-native';
 import { connect } from 'react-redux';
 import Chatkit from "@pusher/chatkit";
 import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR, NUMBER_OF_ROOMS } from '@config';
@@ -22,6 +22,7 @@ class MessagesScreen extends Component {
   retrieveData = async () => {
     try {
       const id = await AsyncStorage.getItem('id');
+      console.log(id);
       const name = await AsyncStorage.getItem('name');
       if (id != null && name != null) {
         this.id = id;
@@ -29,7 +30,7 @@ class MessagesScreen extends Component {
       }
       
     } catch (error) {
-      console.log(error.message);
+      console.log('Load data from Asyncstorage: ', error.message);
     }
   }
 
@@ -49,7 +50,13 @@ class MessagesScreen extends Component {
 
     chatManager.connect()
       .then(currentUser => {
-        const rooms = currentUser.rooms;
+        var rooms = currentUser.rooms;
+        rooms = rooms.map(room => {
+          var count = 0;
+          const r = {RoomIndex: count, ...room};
+          count++;
+          return r;
+        })
         this.setState({ rooms });
       })
       .catch(err => {
@@ -60,7 +67,7 @@ class MessagesScreen extends Component {
   onRetrieveRooms = async () => {
     await this.retrieveData();
     //get rooms on server and update it
-    this.retrieveRooms();
+    await this.retrieveRooms();
   }
 
   componentDidMount() {
@@ -72,8 +79,9 @@ class MessagesScreen extends Component {
   }
 
   listItem(room) {
+    const testid = "RoomIndex" + room.RoomIndex;
     return (
-      <View  style={styles.viewItem}>
+      <View testID={testid} style={styles.viewItem} >
         <TouchableOpacity onPress={() => this.onGoToChatScreen(room)} style={styles.touchItem}>
           <Text>{room.id}</Text>
         </TouchableOpacity>
@@ -84,7 +92,7 @@ class MessagesScreen extends Component {
   render() {
     return (
       <View testID="MessagesScreen" style={{ flex: 1 }}>
-        <FlatList
+        <FlatList testID="FlatList"
           data={this.state.rooms}
           renderItem={(item) => this.listItem(item.item)}
           keyExtractor={(item, index) => index.toString()}

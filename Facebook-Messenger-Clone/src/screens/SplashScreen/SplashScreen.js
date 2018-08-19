@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { SECRET_KEY, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_INSTANCE_LOCATOR } from '@config';
 import axios from 'axios';
 import RNAccountKit, { LoginButton, Color, StatusBarStyle } from 'react-native-facebook-account-kit';
-import { SERVER_URL, ACCOUNT_KIT, MODE, LOGIN_TOKEN, TEST_ACCOUNT } from '@config';
+import { SERVER_URL, ACCOUNT_KIT, MODE, TEST_TOKEN, TEST_ACCOUNT } from '@config';
 
 class SplashScreen extends Component {    
     state = {
@@ -22,10 +22,11 @@ class SplashScreen extends Component {
                     RNAccountKit.getCurrentAccount().then(account => {
                         const flag = this.postCreateUser(account);
                         if (flag) {
-                            this.setState({
-                                authToken: token,
-                                loggedAccount: account,
-                            })
+                            // this.setState({
+                            //     authToken: token,
+                            //     loggedAccount: account,
+                            // })
+                            this.goToMainScreen();
                         }
                     })
                 } else {
@@ -88,19 +89,19 @@ class SplashScreen extends Component {
         }
     }
 
-    onLogin(token) {
+    onLogin(token){
         if (!token) {
             console.log('User canceled login')
-            this.setState({})
         } else {
-            RNAccountKit.getCurrentAccount().then(account => {
+            RNAccountKit.getCurrentAccount().then(async (account) => {
                 //1. send request to loopback and create user
-                const flag = this.postCreateUser(account);
+                const flag = await this.postCreateUser(account);
                 if (flag) {
                     this.setState({
                         authToken: token,
                         loggedAccount: account,
                     })
+                    this.goToMainScreen();
                 }
                 //2. if chatkit has this user, go to main screen
                 // if not, create user and go to main screen
@@ -114,10 +115,7 @@ class SplashScreen extends Component {
 
     testGoToMain = async () => {
         await this.postCreateUser(TEST_ACCOUNT);
-        this.setState({
-            authToken: LOGIN_TOKEN,
-            loggedAccount: TEST_ACCOUNT,
-        });
+        this.goToMainScreen();
     }
 
     onEmailLoginPressed() {
@@ -127,7 +125,6 @@ class SplashScreen extends Component {
         }
         RNAccountKit.loginWithEmail()
             .then(token => {
-                console.log(token);
                 this.onLogin(token)
             })
             .catch(e => this.onLoginError(e))
@@ -182,22 +179,22 @@ class SplashScreen extends Component {
         )
     }
 
-    renderMain() {
-        return (
-            <View testID="Splash">
-                <TouchableOpacity testID="GoToMain" onPress={() => this.goToMainScreen()}>
-                    <Text style={{ backgroundColor: 'red' }}>Go to Main Screen</Text>
-                </TouchableOpacity>
-                <TouchableOpacity testID="LogOut" onPress={() => this.onLogoutPressed()} style={{ marginTop: 30 }}>
-                    <Text style={{ backgroundColor: 'blue' }}>Log out</Text>
-                </TouchableOpacity>
-            </View>
-        )
-    }
+    // renderMain() {
+    //     return (
+    //         <View testID="Splash">
+    //             <TouchableOpacity testID="GoToMain" onPress={() => this.goToMainScreen()}>
+    //                 <Text style={{ backgroundColor: 'red' }}>Go to Main Screen</Text>
+    //             </TouchableOpacity>
+    //             <TouchableOpacity testID="LogOut" onPress={() => this.onLogoutPressed()} style={{ marginTop: 30 }}>
+    //                 <Text style={{ backgroundColor: 'blue' }}>Log out</Text>
+    //             </TouchableOpacity>
+    //         </View>
+    //     )
+    // }
 
     render() {
         return (
-            <View testID="LoginView"  style={styles.container}>{this.state.loggedAccount ? this.renderMain() : this.renderLogin()}</View>
+            <View testID="LoginView"  style={styles.container}>{this.renderLogin()}</View>
         )
     }
 }
