@@ -57,14 +57,25 @@ module.exports = function (Chat) {
         var messObj = JSON.parse(message);
 
         this.find({where: {roomid}}, function(err, obj){
-            if(err != null){
-                //update
-                
+            if(err == null){
+                if(obj != []){
+                    //update
+                    const old_messages = obj[0].messages;
+                    // console.log(old_messages);
+                    // console.log(messObj);
+                    var new_messages = [...old_messages, messObj];
+                    obj[0].updateAttributes({messages: new_messages}, function(err, obj){
+                        console.log(obj);
+                    })
+                }
+                if(obj == []){
+                    //create
+                    this.create({roomid, messages: [messObj]}, function(err, obj){
+                        fn(err, obj);
+                    })
+                }
             }else{
-                //create
-                this.create({roomid, messages: [messObj]}, function(err, obj){
-                    fn(err, obj);
-                })
+                fn(err, null);
             }
         });
         
