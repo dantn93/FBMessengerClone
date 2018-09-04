@@ -1578,8 +1578,8 @@ loopback-component-explorer@^6.0.0:
     swagger-ui "^2.2.5"
 
 loopback-connector-mongodb@^3.5.0:
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/loopback-connector-mongodb/-/loopback-connector-mongodb-3.5.0.tgz#a1a01c5215deb120d41ce1ac27a56427cd24184f"
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/loopback-connector-mongodb/-/loopback-connector-mongodb-3.6.0.tgz#dc7e5a950ae08501d539cfc32ee9e50b29dc27d5"
   dependencies:
     async "^2.6.0"
     bson "^1.0.6"
@@ -1653,8 +1653,8 @@ loopback-swagger@^5.0.0:
     strong-globalize "^4.1.1"
 
 loopback@^3.19.0:
-  version "3.21.0"
-  resolved "https://registry.yarnpkg.com/loopback/-/loopback-3.21.0.tgz#963cf53ad6a88bcd5e38789d3a05adbfed3442ba"
+  version "3.22.2"
+  resolved "https://registry.yarnpkg.com/loopback/-/loopback-3.22.2.tgz#1ba5526ecb3d15d6abea51f514a22ccfe6cfd889"
   dependencies:
     async "^2.0.1"
     bcryptjs "^2.1.0"
@@ -1877,8 +1877,8 @@ nodemailer-stub-transport@^1.1.0:
   resolved "https://registry.yarnpkg.com/nodemailer-stub-transport/-/nodemailer-stub-transport-1.1.0.tgz#11421d2d66b4ee6f405354f914c1f4641eb24b0d"
 
 nodemailer@^4.0.1:
-  version "4.6.7"
-  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-4.6.7.tgz#b68de7f36d65618bdeeeb76234e3547d51266373"
+  version "4.6.8"
+  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-4.6.8.tgz#f82fb407828bf2e76d92acc34b823d83e774f89c"
 
 nodesecurity-npm-utils@^5.0.0:
   version "5.0.0"
